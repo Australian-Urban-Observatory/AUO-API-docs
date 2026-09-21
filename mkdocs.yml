@@ -1,0 +1,59 @@
+site_name: AUO Data API
+site_description: User manual and API reference for the Australian Urban Observatory Data API
+repo_url: https://github.com/Australian-Urban-Observatory/AUO-API
+repo_name: AUO-API
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Concepts:
+      - Boundary hierarchy: concepts/boundary-hierarchy.md
+      - Variants & percentile basis: concepts/variants.md
+      - Scope, grants & auth: concepts/scope-and-auth.md
+      - Errors & warnings: concepts/errors.md
+  - Common Tasks: common-tasks.md
+  - API Reference:
+      - Lookup a value: reference/lookup.md
+      - Area profile: reference/profile.md
+      - Rank areas: reference/rank.md
+      - Compare areas: reference/compare-areas.md
+      - Compare indicators: reference/compare-indicators.md
+      - Trend: reference/trend.md
+      - Distribution: reference/distribution.md
+      - Correlate: reference/correlate.md
+      - Rollup: reference/rollup.md
+      - Spatial: reference/spatial.md
+      - Search: reference/search.md
+      - Indicator metadata: reference/metadata.md
+      - Admin: reference/admin.md
+  - Decisions (ADRs): adr/0001-separate-public-docs-repo.md
