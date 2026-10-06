@@ -3,6 +3,12 @@
 Real questions, translated into concrete calls. Each of these is deceptively simple until
 you hit the ambiguity called out underneath it — that's the point of this page.
 
+!!! note "Suburb and SA1 calls need an API key"
+    Public access covers non-restricted indicators at state, study-region and LGA level only.
+    Every example below that uses `boundary_type=ssc` or `sa1` needs an `Authorization:
+    Bearer <key>` header, and only returns the areas your key's access covers. See
+    [Scope, grants & auth](concepts/scope-and-auth.md).
+
 ## "Which suburb is most liveable?"
 
 This is the most-asked question against this data, and it's ambiguous until you pick a
@@ -14,7 +20,9 @@ GET /v1/rankings?indicator=liveability_index&year=2024&boundary_type=ssc
 ```
 
 Swap `variant` for `r`, `pl`, or `pc` and you can get a different winner — see
-[Variants & percentile basis](concepts/variants.md). Always say which basis you used.
+[Variants & percentile basis](concepts/variants.md). Always say which basis you used. The
+ranking covers only the suburbs your access reaches; with no suburb access at all you get a
+`401`/`403`, not an empty list.
 
 ## "Rank every suburb in my LGA, worst to best"
 
@@ -67,7 +75,9 @@ POST /v1/spatial/contains
 Then create a [custom region](reference/rollup.md#custom-region-rollup) from the same
 polygon to get an aggregate value per indicator, or call
 [Profile](reference/profile.md) per SA1 if you need the full per-area breakdown rather than
-one combined number.
+one combined number. Custom regions are built from meshblocks, so they need access that
+covers meshblocks for the indicator, and a region must contain enough contributing
+meshblocks (5 by default) — see [Rollup → minimum size](reference/rollup.md#minimum-size).
 
 ## "Which neighbouring suburbs do better than mine on X?"
 
@@ -85,6 +95,16 @@ POST /v1/correlations
 { "indicator_a": "dwelling_density", "indicator_b": "social_infrastructure_access",
   "year": 2024, "boundary_type": "ssc", "scope": "study_region", "scope_code": "GMEL" }
 ```
+
+## "I only know the place name — what's its code?"
+
+```
+GET /v1/search/areas?q=brunswick
+```
+
+Candidates come back with `community_code`, `boundary_type`, and `context` (the LGA and
+state) so you can tell two same-named places apart. Suburbs only appear if your access covers
+them. See [Search → areas](reference/search.md#search-areas).
 
 ## "I don't know the indicator key — I just know what I mean"
 
@@ -111,7 +131,8 @@ Some things partners commonly ask for aren't in this dataset at all, and the API
 to say so rather than approximate:
 
 - Absolute population counts (indicators here are proportions/percentiles, not counts)
-- Anything below SA1 (no meshblock- or street-level query surface)
+- Anything below SA1 (meshblock values are never returned directly; they only feed
+  [custom-region and area-group roll-ups](reference/rollup.md))
 - Projections or forecasts (three observed releases only: 2018, 2021, 2024)
 - Causal claims ("did X improve Y") — this is cross-sectional data
 - Individual/household-level records — aggregated areal data only

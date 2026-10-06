@@ -1,6 +1,6 @@
 # Compare indicators
 
-`compare-ind` — 2–20 indicators, side by side, for one area/year/variant. A **computed
+`compare-indicators` — two or more indicators, side by side, for one area/year/variant. A **computed
 resource**, same lifecycle as [Compare areas](compare-areas.md).
 
 ## Create
@@ -41,7 +41,7 @@ POST /v1/comparisons/indicators
         "key": "public_transport_access", "value": 6.4, "domain": "Transport",
         "description": "...", "units": "% of dwellings", "polarity": "positive",
         "source": "AUO", "decimal_places": 1, "percentage_scale": true,
-        "variants": ["r", "p"], "aggregation_method": "weighted_mean_person",
+        "variants": ["r", "p", "pl", "pc"], "aggregation_method": "weighted_mean_person",
         "custom_region_supported": true
       }
     ]
@@ -59,9 +59,12 @@ without a second round trip.
 1. `AREA_NOT_FOUND` (404) — `community_code` doesn't resolve for `boundary_type`
 2. `INSUFFICIENT_INDICATORS` (422) — fewer than 2 `indicator_keys` — checked before resolving any
 3. `INDICATOR_NOT_FOUND` (404) — names every key that failed to resolve
-4. `VARIANT_NOT_SUPPORTED` (422) — names the specific affected indicator key
+4. `VARIANT_NOT_SUPPORTED` (422) — the variant isn't `r`/`p`/`pl`/`pc`, or `pl`/`pc` isn't
+   available for this area
 
-No `OUT_OF_SCOPE` check at creation; enforced on `GET` instead, same as area comparisons.
+Access is applied the same way as [area comparisons](compare-areas.md#create): the inline
+`result` only contains indicators you can see at this area, and if there are none you get
+`401`/`403` instead of a `201`.
 
 ## Retrieve
 
@@ -69,9 +72,11 @@ No `OUT_OF_SCOPE` check at creation; enforced on `GET` instead, same as area com
 GET /v1/comparisons/indicators/{comparison_id}
 ```
 
-Live recompute, scope-intersected with the caller. Supports `Accept: text/csv`.
+Live recompute, scope-intersected with the caller: an indicator is included only if you can
+see it at the stored area, and the rest are omitted. Supports `Accept: text/csv`.
 
 ### Errors (retrieve)
 
 1. `RESOURCE_NOT_FOUND` (404)
-2. `OUT_OF_SCOPE` (403)
+2. `401 AUTHENTICATION_REQUIRED` / `403 OUT_OF_SCOPE` — you can see none of the stored
+   indicators at that area

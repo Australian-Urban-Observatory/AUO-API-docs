@@ -27,9 +27,9 @@ the single source of truth — individual endpoint pages only call out which of 
 |---|---|---|
 | `AREA_NOT_FOUND` | 404 | Named `community_code` doesn't exist for that boundary type/year |
 | `INDICATOR_NOT_FOUND` | 404 | Named indicator key doesn't exist |
-| `VARIANT_NOT_SUPPORTED` | 422 | Variant not defined for this indicator, or not valid for this area (e.g. `pl` with no LGA parent) |
+| `VARIANT_NOT_SUPPORTED` | 422 | Variant isn't one of `r`, `p`, `pl`, `pc`, or isn't valid for this area (e.g. `pl` with no LGA parent) |
 | `SCOPE_NOT_FOUND` | 404 | Named ranking/distribution/correlation scope (state, study region, LGA code) doesn't exist |
-| `INSUFFICIENT_DATA` | 422 | Fewer than 2 areas have data — for a distribution/correlation, or after scope filtering removed every contributing area |
+| `INSUFFICIENT_DATA` | 422 | Not enough data to compute the result: fewer than 2 areas for a distribution/correlation, no contributing member for a roll-up, or a roll-up over too few meshblocks (see [Rollup → minimum size](../reference/rollup.md#minimum-size)) |
 | `DUPLICATE_INDICATOR` | 422 | Correlation requested between an indicator and itself |
 | `CUSTOM_REGION_NOT_SUPPORTED` | 422 | Indicator's `aggregation_method` is `unsupported` — no meshblock source to roll up |
 | `CUSTOM_REGION_EMPTY` | 422 | Submitted polygon fully contains zero meshblocks |
@@ -37,20 +37,32 @@ the single source of truth — individual endpoint pages only call out which of 
 | `CUSTOM_REGION_VARIANT_NOT_SUPPORTED` | 422 | Requested a variant other than `r` against a custom region |
 | `AREA_GROUP_NOT_FOUND` | 404 | Named area_group id doesn't exist |
 | `INVALID_GEOMETRY` | 400 | Bad GeoJSON, out-of-range lat/lon, or self-intersecting polygon (spatial endpoints) |
-| `UNKNOWN_BOUNDARY_TYPE_OR_YEAR` | 400 (404 for admin coverage) | That boundary type/year combination doesn't exist in the system |
+| `UNKNOWN_BOUNDARY_TYPE_OR_YEAR` | 400 | That boundary type/year combination doesn't exist in the system |
 | `NO_CONTAINING_AREA` | 404 | No area of the requested boundary type/year contains the given point |
 | `DOMAIN_NOT_FOUND` | 404 | Named domain filter doesn't exist |
-| `QUERY_INVALID` | 400 | Search query empty or over 200 characters |
+| `QUERY_INVALID` | 400 | Search query empty or over 200 characters (indicator and area search) |
 | `AUTHENTICATION_REQUIRED` | 401 | No bearer token, and the request needs one |
-| `INVALID_API_KEY` | 401 | Bearer token doesn't match a valid, non-revoked key |
-| `OUT_OF_SCOPE` | 403 | Request targets an indicator/area/resource outside your effective scope |
+| `INVALID_API_KEY` | 401 | Bearer token (an API key) doesn't match a valid, non-revoked key |
+| `INVALID_TOKEN` | 401 | Bearer token is an AUO sign-in token that is malformed, wrongly signed or expired; `details.reason` is `invalid` or `expired` |
+| `OUT_OF_SCOPE` | 403 | A credential was presented, but your effective scope doesn't cover what the request names |
 | `RESOURCE_NOT_FOUND` | 404 | Named computed-resource id (comparison, correlation, region) doesn't exist |
 | `INVALID_LIMIT` | 422 | `limit` outside 1–1000 |
 | `INSUFFICIENT_AREAS` | 422 | Fewer than 2 `community_codes` in an area comparison |
 | `INSUFFICIENT_INDICATORS` | 422 | Fewer than 2 `indicator_keys` in an indicator comparison |
-| `GRANTEE_NOT_FOUND` | 404 | Named grantee has no grants at all (admin endpoints) |
 | `UNSUPPORTED_VERSION` | 404 | Version prefix never released |
 | `VERSION_WITHDRAWN` | 410 | Version prefix withdrawn |
+
+## Access errors
+
+`AUTHENTICATION_REQUIRED` (401) and `OUT_OF_SCOPE` (403) are the same refusal, split by
+whether you sent a credential. Both carry `details.resource_type` (`indicator`, `area`, or a
+computed-resource name) and `details.identifier`. They apply to the *whole request*, and an
+access error is only ever reported for something that exists — a nonexistent area or
+indicator is always a `404` first. Which requests are refused rather than filtered is
+explained in [Scope, grants & auth](scope-and-auth.md#how-requests-are-checked).
+
+`INSUFFICIENT_DATA` on a roll-up over meshblocks carries `details.contributing_meshblocks`
+and `details.minimum_meshblocks`.
 
 ## Item-level warnings
 
@@ -84,3 +96,8 @@ When a request has multiple things wrong with it at once, most endpoints check i
 order — area/scope first, then indicator, then variant — and report only the *first*
 failure. If you get `INDICATOR_NOT_FOUND`, don't assume the area and variant you sent were
 valid; you just haven't found out yet.
+
+Access checks slot in after the existence check of the thing they concern. For a single-value
+lookup the order is: area exists → indicator exists → you can see the indicator somewhere →
+you can see this indicator at this area → variant is valid. A format check that needs no
+database (`limit`, search `q`, coordinates, polygon shape) runs before all of them.

@@ -55,5 +55,4 @@ nav:
       - Spatial: reference/spatial.md
       - Search: reference/search.md
       - Indicator metadata: reference/metadata.md
-      - Admin: reference/admin.md
   - Decisions (ADRs): adr/0001-separate-public-docs-repo.md

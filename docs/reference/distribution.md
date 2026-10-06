@@ -45,7 +45,7 @@ variants have no meaning as an input to a spread statistic.
 ```
 
 - `count` is the number of areas that actually contributed a value **within your effective
-  scope** — filtering, not rejection (see [Scope, grants & auth](../concepts/scope-and-auth.md)).
+  scope** (see [Scope, grants & auth](../concepts/scope-and-auth.md)).
 - `own` only appears at all if you supplied `community_code`. Within it, `position` is always
   present — `null` if `own.value` is `null`, otherwise one of `below_q1`, `q1_to_median`,
   `median_to_q3`, `above_q3`. Boundaries are half-open and lower-inclusive: a value exactly
@@ -59,6 +59,12 @@ variants have no meaning as an input to a spread statistic.
 1. `SCOPE_NOT_FOUND` (404)
 2. `AREA_NOT_FOUND` (404) — only checked if `community_code` was supplied
 3. `INDICATOR_NOT_FOUND` (404)
-4. `INSUFFICIENT_DATA` (422) — fewer than 2 areas in scope have a recorded value
+4. `401 AUTHENTICATION_REQUIRED` / `403 OUT_OF_SCOPE` — you can't see the indicator anywhere
+5. `401`/`403` — areas have recorded values but you can see none of them
+6. `INSUFFICIENT_DATA` (422) — fewer than 2 areas in scope have a recorded value
+7. `401`/`403` — you supplied `community_code` and can't see this indicator at that area
 
-No `OUT_OF_SCOPE` on this endpoint — scope enforcement is filtering only.
+Areas you can't see are silently left out of the distribution, as long as at least one
+remains. Only when *none* remain (step 5), or the reference area itself is hidden (step 7),
+is the request refused. `INSUFFICIENT_DATA` counts only the areas you can see, so it can
+also occur when your access leaves just one area with a value.

@@ -37,18 +37,23 @@ from the indicator's own metadata and are always included.
 
 ## Auth
 
-Public unless the named indicator is partner-restricted or the named area is
-access-grant-restricted — in which case a valid, in-scope key is required, or the request
-gets `403 OUT_OF_SCOPE` (or `401` with no/invalid key).
+Public only for a non-restricted indicator at state, study-region or LGA level. Suburb and
+SA1 values, and partner-restricted indicators anywhere, need a key whose access covers that
+exact indicator at that exact area. Without a key the request gets `401
+AUTHENTICATION_REQUIRED`; with a key that doesn't cover it, `403 OUT_OF_SCOPE`. Meshblock
+values are never returned — see [Scope, grants & auth](../concepts/scope-and-auth.md#meshblocks-are-roll-up-only).
 
 ## Errors
 
 Checked in this order — the first failure wins:
 
 1. `AREA_NOT_FOUND` (404) — `community_code` doesn't exist for `boundary_type`
-2. `403 OUT_OF_SCOPE` — area exists but isn't in your effective scope
-3. `INDICATOR_NOT_FOUND` (404) — indicator key doesn't exist
-4. `403 OUT_OF_SCOPE` — indicator exists but isn't in your effective scope
-5. `VARIANT_NOT_SUPPORTED` (422) — variant not defined for this indicator
+2. `INDICATOR_NOT_FOUND` (404) — indicator key doesn't exist
+3. `401`/`403` — you can't see this indicator at any area at all
+4. `401`/`403` — you can see the indicator elsewhere, but not at this area
+5. `VARIANT_NOT_SUPPORTED` (422) — variant isn't `r`/`p`/`pl`/`pc`, or `pl`/`pc` isn't
+   available for this area
+
+`401` is `AUTHENTICATION_REQUIRED` (no credential sent); `403` is `OUT_OF_SCOPE`.
 
 See [Errors & warnings](../concepts/errors.md) for the shared envelope shape.

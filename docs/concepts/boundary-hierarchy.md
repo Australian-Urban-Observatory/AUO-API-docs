@@ -14,10 +14,13 @@ state → study_region → lga → ssc (suburb) → sa1 → meshblock
 ```
 
 - **state**, **study_region**, **lga**, **ssc**, **sa1** — the levels most endpoints operate
-  on. Pass the boundary type as a string, e.g. `boundary_type=lga`.
+  on. Pass the boundary type as a string, e.g. `boundary_type=lga`. State, study region and
+  LGA are open to everyone; **suburb and SA1 need a key whose access covers them** (see
+  [Scope, grants & auth](scope-and-auth.md#the-public-baseline)).
 - **meshblock** — the finest level held by the API, used only as the aggregation base for
-  AUO-computed indicators (see [Rollup](../reference/rollup.md)). It is not directly
-  queryable through the value/profile/ranking endpoints.
+  AUO-computed indicators (see [Rollup](../reference/rollup.md)). Meshblock values are
+  **never returned directly, to anyone**: every value/profile/ranking-style endpoint refuses
+  them as out of scope. They only ever surface as part of an aggregate.
 
 Each area at LGA level and below carries denormalised parent identifiers (its state, study
 region, LGA, suburb, SA1), which is what makes percentile-within-LGA (`pl`) and

@@ -31,11 +31,14 @@ GET /v1/indicators/{key}
 - `custom_region_supported` is derived directly from `aggregation_method`: `true` if and
   only if it's `weighted_mean_person`. If `false`, this indicator can never be used in a
   [custom-region rollup](rollup.md#custom-region-rollup).
-- `variants` lists exactly which of `r`/`p`/`pl`/`pc` this indicator defines — request
-  anything outside this list and every other endpoint returns `VARIANT_NOT_SUPPORTED`.
+- `variants` is always `["r", "p", "pl", "pc"]` — the fixed set every endpoint accepts.
+  An indicator having no recorded value for a variant shows up as `null` in the data, not
+  as a shorter list here.
 
-**Errors:** `INDICATOR_NOT_FOUND` (404); `OUT_OF_SCOPE` (403) — the key exists but names a
-partner-restricted indicator outside your effective scope.
+**Errors:** `INDICATOR_NOT_FOUND` (404); `401 AUTHENTICATION_REQUIRED` (no credential) /
+`403 OUT_OF_SCOPE` (credential presented) — the key exists but you can't see the indicator at
+any area, as is the case for a partner-restricted indicator outside your access. The
+indicator's existence isn't hidden; its metadata is.
 
 ## Full catalogue
 
@@ -47,5 +50,5 @@ GET /v1/indicators
 { "indicators": [ /* one object per indicator, same shape as above */ ] }
 ```
 
-Filtered to your effective scope — no rejection, just omission. An unauthenticated request
-never sees partner-restricted indicators here at all.
+Filtered to indicators you can see at one or more areas — no rejection, just omission. An
+unauthenticated request never sees partner-restricted indicators here at all.

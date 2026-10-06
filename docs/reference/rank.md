@@ -44,16 +44,28 @@ GET /v1/rankings
 - For the raw variant `r`, ranking direction already accounts for the indicator's polarity —
   `direction=best` always means "more liveable," regardless of whether a higher or lower raw
   number is better for that particular indicator.
-- No areas matching → `total: 0`, `areas: []` — this is a valid `200`, not an error.
+- No area has a recorded value at all → `total: 0`, `areas: []` — a valid `200`, not an
+  error.
 
 ## Auth
 
-Public. Areas outside your effective scope are silently excluded from the candidate set
-(filtering, not rejection) — `total` reflects the filtered set.
+Candidates are limited to areas where your effective scope covers this indicator, so a
+public request only ever ranks state, study-region or LGA areas of a non-restricted
+indicator. Areas you can't see are silently excluded — `total` reflects the filtered set.
+
+Two cases are refused instead of filtered:
+
+- you can't see the indicator at any area, or
+- areas *do* have recorded values, but you can see none of them (for example, ranking
+  suburbs with no suburb-level access) — a `401`/`403`, **not** an empty `200`.
+
+So `total: 0` means there's genuinely no data, not that your access was too narrow.
 
 ## Errors
 
-1. `SCOPE_NOT_FOUND` (404) — `scope_code` doesn't resolve for the given `scope`
-2. `INDICATOR_NOT_FOUND` (404)
-3. `VARIANT_NOT_SUPPORTED` (422)
-4. `INVALID_LIMIT` (422) — checked before anything else, since it needs no database access
+1. `INVALID_LIMIT` (422) — checked before anything else, since it needs no database access
+2. `SCOPE_NOT_FOUND` (404) — `scope_code` doesn't resolve for the given `scope`
+3. `INDICATOR_NOT_FOUND` (404)
+4. `VARIANT_NOT_SUPPORTED` (422)
+5. `401 AUTHENTICATION_REQUIRED` / `403 OUT_OF_SCOPE` — indicator not visible to you anywhere,
+   or filtering left nothing (see Auth above)

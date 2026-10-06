@@ -1,57 +1,128 @@
 # Scope, grants & auth
 
+What you can read is decided by your **effective scope**: a set of *(indicator, area)*
+combinations. This page explains how that set is built and what the API does when a
+request reaches outside it.
+
+## The public baseline
+
+With no API key, you can read:
+
+> every indicator that isn't partner-restricted, at every area of **LGA level or coarser**
+> (`state`, `study_region`, `lga`).
+
+Anything else needs a key:
+
+| You want | Needs a key? |
+|---|---|
+| A non-restricted indicator at state, study-region or LGA level | No |
+| A non-restricted indicator at **suburb (`ssc`) or `sa1`** level | Yes — public access stops at LGA |
+| A partner-restricted indicator (`partner_indicator = true`) at any level | Yes |
+| A `meshblock` value | Never readable directly — see [Meshblocks](#meshblocks-are-roll-up-only) |
+
 ## Grantee, grant, effective scope
 
-- A **grantee** is the organisation your API key belongs to. Grants are resolved at the
-  grantee level — every key issued to your organisation shares the same access.
-- A **grant** (`access_grants` record) authorises visibility of a set of indicators (by
-  indicator or domain) and a set of areas (by area identifier or area group), optionally
-  restricted to specific boundary types.
-- Your **effective scope** is the resolved set of indicator ids and area codes your grant
-  expands to — this is what every request is actually checked against, not the raw grant
-  record.
+- A **grantee** is the organisation your API key belongs to. An organisation has at most
+  one active key: issuing a new one revokes the previous one.
+- A **grant** is given to a grantee and lists exact indicators and exact areas. It covers
+  **every combination of one of its indicators with one of its areas, and nothing else.**
+    - An area is an exact `community_code` at an exact boundary type. Naming a suburb does
+      not grant the SA1s inside it, or the LGA around it.
+    - It applies to that code in every year it exists.
+    - A grant never takes anything away from the public baseline.
+- Your **effective scope** is the public baseline plus everything covered by every grant
+  your organisation holds. It belongs to the organisation, never to a particular key.
 
-Public (unauthenticated) requests have an effective scope too: every indicator that isn't
-partner-restricted, and every area not named by any access grant.
+Because combinations are explicit, a grant for a restricted indicator at your own SA1s does
+not let you read it anywhere else, and a grant for an SA1 only unlocks the indicators it
+lists there, not every public indicator at that SA1.
 
-## Two different ways scope gets enforced
+Some organisations hold a broad, standing grant — every indicator at every boundary type.
+That kind of grant follows the data: an indicator or area loaded later is covered without
+anyone editing anything. A narrow grant never changes unless its terms do.
 
-This matters because it changes what kind of response you get when you ask for something
-partly outside your scope:
+Your scope is worked out **live on every request**. There's no delay after access is
+granted, narrowed or revoked: the next request sees the change.
 
-**Rejecting** — naming something specific that's out of scope fails the whole request with
-`403 OUT_OF_SCOPE`. Applies to endpoints where you name one specific indicator or area
-directly: [Lookup](../reference/lookup.md), [Trend](../reference/trend.md),
-[indicator metadata by key](../reference/metadata.md).
+## How requests are checked
 
-**Filtering** — aggregate/multi-area endpoints silently exclude out-of-scope areas from the
-computation rather than rejecting the request. Applies to
-[Profile](../reference/profile.md), [Rank](../reference/rank.md),
-[Distribution](../reference/distribution.md), [Correlate](../reference/correlate.md), and
-[Rollup](../reference/rollup.md). If effective-scope filtering removes every contributing
-area, you get `422 INSUFFICIENT_DATA`, not an empty success — and count-based fields (rank
-totals, distribution counts) reflect the filtered set, not what you originally asked for.
+Every endpoint applies the same ideas, in this order:
 
-## Partner-restricted indicators
+1. **Things that don't exist are `404`s.** An unknown area, indicator or scope is reported
+   as not found before any access check — you will never get a `401`/`403` for something
+   that doesn't exist.
+2. **Can you see the indicator anywhere at all?** If not, the request is rejected.
+3. **Is this exact combination covered?** Endpoints that name one area and one indicator
+   reject if not. Endpoints that cover many areas instead *filter* — see below.
 
-An indicator with `partner_indicator = true` is only visible to a grantee whose effective
-scope includes it. An unauthenticated request to the full catalogue
-(`GET /v1/indicators`) silently omits these; a direct request naming one by key
-(`GET /v1/indicators/{key}`) without the right grant returns `403 OUT_OF_SCOPE`.
+A rejection is one of two codes, depending on whether you sent a credential:
+
+| Situation | Status | Code |
+|---|---|---|
+| No credential, and the request needs one | 401 | `AUTHENTICATION_REQUIRED` |
+| Credential presented, but it doesn't cover the request | 403 | `OUT_OF_SCOPE` |
+
+Both carry `details.resource_type` and `details.identifier` naming what was refused. A
+restricted indicator's *key* is not secret — a `401`/`403` confirms it exists — but its
+metadata and values are.
+
+### Rejecting endpoints
+
+These name one specific indicator and/or area, so anything outside your scope fails the
+whole request:
+
+- [Lookup](../reference/lookup.md) and [Trend](../reference/trend.md) — the indicator must
+  be visible somewhere, *and* the exact indicator/area combination must be covered.
+- [Area profile](../reference/profile.md) — the area must have at least one indicator
+  visible at it.
+- [Indicator metadata by key](../reference/metadata.md).
+
+### Filtering endpoints
+
+Multi-area endpoints silently drop the areas you can't see and compute over the rest:
+[Rank](../reference/rank.md), [Distribution](../reference/distribution.md),
+[Correlate](../reference/correlate.md), [Compare areas](../reference/compare-areas.md),
+[Compare indicators](../reference/compare-indicators.md), and the
+[roll-ups](../reference/rollup.md). Counts in the response (`total`, `count`,
+`member_count`) describe the filtered set, not what you asked for.
+
+Two consequences worth knowing:
+
+- **Filtering that removes everything is a rejection, not an empty result.** If data exists
+  but none of it is visible to you, you get `401`/`403`, not `200` with an empty list or
+  `422 INSUFFICIENT_DATA`. A result that is empty because nothing is recorded at all
+  stays `200` (or `INSUFFICIENT_DATA`), so "nothing there" and "nothing you can see" are
+  told apart. If you can see *some* of the data, but too little to compute a result, you
+  get `INSUFFICIENT_DATA`.
+- **Partial visibility is silent.** If you can see some suburbs in an LGA but not others,
+  a ranking of that LGA's suburbs ranks only the ones you can see, and says nothing about
+  the rest.
+
+## Meshblocks are roll-up-only
+
+`meshblock` is the finest level the API holds. A meshblock value is **never returned
+directly, to anyone, at any access level** — asking for one through any value, profile,
+trend, ranking, distribution, correlation or comparison endpoint is refused as out of
+scope.
+
+Meshblocks can still feed an aggregate: [custom regions and area-group
+roll-ups](../reference/rollup.md) are computed from them. That needs your grants to cover
+meshblocks for the indicator, which the public baseline does not, so a request with no key
+(or with a key whose access doesn't reach meshblocks) is refused with `401`/`403`.
+
+To keep an aggregate from amounting to a single meshblock's value, a roll-up that draws on
+meshblocks is refused with `422 INSUFFICIENT_DATA` unless enough of them contribute — see
+[Rollup → minimum size](../reference/rollup.md#minimum-size).
 
 ## Computed resources and scope
 
-Comparisons, correlations, and custom regions are persisted resources with their own URL
-(`POST` creates, `GET /v1/.../{id}` retrieves). The **creator's** scope only matters at
-creation for the `result` field returned inline with the `201` — every subsequent `GET`
-re-resolves against **that caller's own** effective scope, intersected with the resource's
-stored inputs. If your scope doesn't overlap the resource's inputs at all, you get
-`403 OUT_OF_SCOPE` on the `GET`, even if the resource itself is real and someone else can see
-it fine.
+Comparisons, correlations and custom regions are persisted resources with their own URL
+(`POST` creates, `GET /v1/.../{id}` retrieves). Scope is applied to **you, the caller**:
 
-## Cache invalidation
-
-Effective scope is cached server-side per grant. Creating, modifying, or revoking a grant,
-API key, or area group invalidates the cache immediately — you don't need to do anything
-client-side, but don't assume a permission change is instant if you're hammering the API in
-a tight loop right at the moment of the change.
+- The `result` returned inline with the `201` is computed against *your* scope.
+- Every later `GET` re-resolves against the scope of **whoever makes that request**,
+  intersected with the resource's stored inputs. A resource you created is not visible to
+  you beyond what your scope allows at the time, and someone else with wider scope sees
+  more.
+- If none of a resource's stored inputs are visible to the caller, the `GET` is a
+  `401`/`403` even though the resource exists.

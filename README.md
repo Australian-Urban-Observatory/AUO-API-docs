@@ -20,6 +20,15 @@ mkdocs serve
 Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds the site with MkDocs
 and publishes it to GitHub Pages.
 
+## Who this is for
+
+The published site is the user manual for **people calling the API** (partner developers,
+researchers). It must not document administrator-facing functionality: the admin console,
+the `/v1/admin/...` endpoints, administrator credentials and how access is granted or
+managed internally. When something is managed by the AUO team, say "contact the AUO team",
+and describe only what an API user can observe (status codes, response shapes, what their
+access covers). This repo is public.
+
 ## Keeping this in sync with AUO-API
 
 This repo has no automated link to the backend's route/handler code. When an endpoint's

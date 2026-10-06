@@ -22,15 +22,20 @@ GET /v1/areas/{community_code}/trend
   "indicator": "walkability",
   "variant": "r",
   "points": [
-    { "year": 2018, "value": 3.9 },
-    { "year": 2021, "value": 4.1 },
-    { "year": 2024, "value": 4.3 }
+    { "year": 2018, "community_code_used": "20660", "value": 3.9 },
+    { "year": 2021, "community_code_used": "20660", "value": 4.1 },
+    { "year": 2024, "community_code_used": "20660", "value": 4.3 }
   ]
 }
 ```
 
 A release with no recorded value returns `value: null` for that point rather than omitting
 it — `points` always has exactly three entries.
+
+`community_code_used` is the area code the value was actually read from for that year.
+For 2021 and 2024 it is always your `community_code`. For 2018 it can differ, when the
+boundary changed and the value was resolved through a concordance mapping (see below), and
+it is `null` when no 2018 code could be resolved.
 
 ## The 2018 leg
 
@@ -58,13 +63,14 @@ whole request, and 2021/2024 are unaffected.
 
 ## Auth
 
-Rejecting, not filtering — same as [Lookup](lookup.md): naming an out-of-scope area or
-indicator directly gets `403 OUT_OF_SCOPE`.
+Rejecting, not filtering — same as [Lookup](lookup.md): naming an indicator or area your
+scope doesn't cover gets `401 AUTHENTICATION_REQUIRED` (no credential) or `403
+OUT_OF_SCOPE` (credential presented).
 
 ## Errors
 
 1. `AREA_NOT_FOUND` (404)
-2. `OUT_OF_SCOPE` (403) — area
-3. `INDICATOR_NOT_FOUND` (404)
-4. `OUT_OF_SCOPE` (403) — indicator
+2. `INDICATOR_NOT_FOUND` (404)
+3. `401`/`403` — you can't see this indicator at any area
+4. `401`/`403` — you can see the indicator elsewhere, but not at this area
 5. `VARIANT_NOT_SUPPORTED` (422)

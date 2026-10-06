@@ -11,9 +11,11 @@ indicator, and not a different year.
 | `pl` | Percentile within LGA | The area's own LGA |
 | `pc` | Percentile within city | The area's own study region |
 
-Not every indicator defines every variant — check `variants` on
-[indicator metadata](../reference/metadata.md) before requesting one. Requesting an
-undefined variant returns `422 VARIANT_NOT_SUPPORTED`.
+Every indicator is addressed with the same four variants (`variants` on
+[indicator metadata](../reference/metadata.md) always lists all of them). A variant that
+isn't one of these four returns `422 VARIANT_NOT_SUPPORTED`. A valid variant with nothing
+recorded for the indicator, area and year simply comes back `null` — see
+[`null` values](#null-values).
 
 !!! warning "The same question has different answers depending on variant"
     "Which suburb is most liveable?" is ambiguous until you pick a basis: the raw score, the
@@ -25,8 +27,7 @@ undefined variant returns `422 VARIANT_NOT_SUPPORTED`.
 
 `pl` needs the area to have an LGA parent; `pc` needs a study region parent. An area with no
 such parent (e.g. a state-level or study-region-level area itself has no *containing* LGA)
-returns `422 VARIANT_NOT_SUPPORTED` for that variant — this is a property of the *area*, not
-just the indicator.
+returns `422 VARIANT_NOT_SUPPORTED` for that variant — this is a property of the *area*.
 
 ## Custom regions only ever support `r`
 
@@ -44,6 +45,4 @@ combination — it does not mean zero, and it does not mean an error. Common rea
 - The area is too small/new for that indicator's methodology
 - (Rare) the area or indicator was added after that release
 
-If you need to know *why* a specific indicator has broad `null` coverage, check
-[Admin → coverage gaps](../reference/admin.md#coverage-gaps) (requires an admin key), or ask
-the AUO team.
+If you need to know *why* a specific indicator has broad `null` coverage, ask the AUO team.

@@ -3,7 +3,9 @@
 The AUO Data API is a REST service in front of the Australian Urban Observatory's
 Postgres/PostGIS database of urban liveability indicators: 206 indicators across 21 domains,
 recorded at LGA, suburb (SSC) and SA1 granularity for the 2018, 2021 and 2024 releases, with
-geometry for every boundary and year.
+geometry for every boundary and year. Non-restricted indicators are open at state, study-region
+and LGA level with no key; suburb and SA1 data, and partner-restricted indicators, need an
+API key.
 
 This manual is for developers integrating directly with the API — partner organisations,
 researchers, and anyone building on top of AUO data rather than using the [AUO map](https://new.map.auo.org.au/)
@@ -13,9 +15,10 @@ itself.
 
 - **New to the API?** Start with [Getting Started](getting-started.md) for the base URL,
   versioning, and authentication.
-- **Confused by `r`/`p`/`pl`/`pc`, or why a value is `null`?** Read [Concepts](concepts/variants.md)
-  first — the six-variant system and the scope model are the two things that trip up most
-  new integrations.
+- **Confused by `r`/`p`/`pl`/`pc`, or why a value is `null`, or why you got a `401`/`403`?**
+  Read [Concepts](concepts/variants.md) first — the four-variant system and the
+  [scope model](concepts/scope-and-auth.md) are the two things that trip up most new
+  integrations.
 - **Know what you want to build, not which endpoint to call?** [Common Tasks](common-tasks.md)
   maps real questions ("which suburb is most liveable?") to concrete API calls.
 - **Know exactly which endpoint you need?** Jump straight to [API Reference](reference/lookup.md).
@@ -34,9 +37,9 @@ itself.
 | Correlate | Relationship between two indicators | `POST /v1/correlations` |
 | Rollup | Aggregate over a health district or drawn polygon | `GET /v1/rollups/area-group/{id}`, `POST /v1/regions` |
 | Spatial | Point-in-polygon, adjacency, containment | `GET /v1/spatial/point`, `GET /v1/areas/{code}/neighbours`, `POST /v1/spatial/contains` |
-| Search | Find an indicator from a plain-language description | `GET /v1/search/indicators` |
+| Search indicators | Find an indicator from a plain-language description | `GET /v1/search/indicators` |
+| Search areas | Find an area's `community_code` from a place name | `GET /v1/search/areas` |
 | Metadata | Definition, units, methodology | `GET /v1/indicators`, `GET /v1/indicators/{key}` |
-| Admin | Grants, area groups, coverage, API keys | `GET/POST/DELETE /v1/admin/...` |
 
 Every endpoint is under a version prefix (`/v1` today) — see
 [API Versioning](getting-started.md#versioning).
