@@ -26,9 +26,11 @@ Anything else needs a key:
   one active key: issuing a new one revokes the previous one.
 - A **grant** is given to a grantee and lists exact indicators and exact areas. It covers
   **every combination of one of its indicators with one of its areas, and nothing else.**
-    - An area is an exact `community_code` at an exact boundary type. Naming a suburb does
-      not grant the SA1s inside it, or the LGA around it.
-    - It applies to that code in every year it exists.
+    - An area is an exact [AUO Area ID](areas.md). Naming a suburb does not grant the SA1s
+      inside it, or the LGA around it, and an ABS code is never what a grant names — so a
+      suburb code that a later ABS edition reuses for a different place does not widen a
+      grant.
+    - It applies to that Area in every year it has a feature.
     - A grant never takes anything away from the public baseline.
 - Your **effective scope** is the public baseline plus everything covered by every grant
   your organisation holds. It belongs to the organisation, never to a particular key.
@@ -40,6 +42,11 @@ lists there, not every public indicator at that SA1.
 Some organisations hold a broad, standing grant — every indicator at every boundary type.
 That kind of grant follows the data: an indicator or area loaded later is covered without
 anyone editing anything. A narrow grant never changes unless its terms do.
+
+To find out which Areas a narrow grant covers, call the endpoints and read the results (for
+example [area search](../reference/search.md#search-areas) lists only the places you can see),
+or ask the AUO team. Because a grant names Areas by AUO Area ID, your own copy of any list of
+covered Areas should be keyed by AUO Area ID, not ABS code.
 
 Your scope is worked out **live on every request**. There's no delay after access is
 granted, narrowed or revoked: the next request sees the change.
@@ -111,8 +118,8 @@ meshblocks for the indicator, which the public baseline does not, so a request w
 (or with a key whose access doesn't reach meshblocks) is refused with `401`/`403`.
 
 To keep an aggregate from amounting to a single meshblock's value, a roll-up that draws on
-meshblocks is refused with `422 INSUFFICIENT_DATA` unless enough of them contribute — see
-[Rollup → minimum size](../reference/rollup.md#minimum-size).
+meshblocks is refused with `422 INSUFFICIENT_DATA` unless its region contains enough of them —
+see [Rollup → minimum size](../reference/rollup.md#minimum-size).
 
 ## Computed resources and scope
 
@@ -126,3 +133,5 @@ Comparisons, correlations and custom regions are persisted resources with their 
   more.
 - If none of a resource's stored inputs are visible to the caller, the `GET` is a
   `401`/`403` even though the resource exists.
+- A comparison stores the Areas it resolved (by AUO Area ID), not the codes you sent, so a
+  saved comparison keeps comparing the same Areas whichever ABS edition a code belonged to.

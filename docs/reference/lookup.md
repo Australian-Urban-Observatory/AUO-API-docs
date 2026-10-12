@@ -10,30 +10,51 @@ GET /v1/values
 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
-| `community_code` | string | yes | |
-| `boundary_type` | string | yes | e.g. `lga`, `ssc`, `sa1` |
+| `area` | string | one of `area` / `community_code` + `boundary_type` | The [AUO Area ID](../concepts/areas.md) |
+| `community_code` | string | with `boundary_type`, instead of `area` | An ABS code, resolved to an Area |
+| `boundary_type` | string | with `community_code` | e.g. `lga`, `ssc`, `sa1` |
+| `edition` | string | no | With `community_code`: look the code up in this ABS edition (e.g. `SAL 2021`) rather than the newest one containing it |
 | `indicator` | string | yes | Indicator key |
 | `year` | integer | yes | |
 | `variant` | string | no | Default `r`. See [Variants](../concepts/variants.md) |
+
+Name the Area one way only — see
+[Naming an Area in a request](../concepts/areas.md#naming-an-area-in-a-request).
 
 ## Response — 200
 
 ```json
 {
-  "community_code": "20660",
-  "boundary_type": "lga",
+  "area": {
+    "area_id": "lga-000123",
+    "name": "Yarra",
+    "boundary_type": "lga",
+    "source_codes": [
+      { "edition": "LGA 2021", "code": "27350" },
+      { "edition": "LGA 2016", "code": "27350" }
+    ]
+  },
+  "resolved_from": null,
   "indicator": "walkability",
   "year": 2021,
   "variant": "r",
   "value": 4.2,
-  "polarity": "positive",
+  "polarity": "ASC",
   "units": "index score"
 }
 ```
 
-`value` is `null` if no value is recorded for this exact combination — see
-[Variants → null values](../concepts/variants.md#null-values). `polarity` and `units` come
-from the indicator's own metadata and are always included.
+- `area` describes the Area the request landed on.
+- `resolved_from` is the one source code (`{edition, code}`) a `community_code` request
+  matched, and `null` when you sent `area`. Look here to see which ABS edition a bare code
+  resolved in.
+- `value` is `null` if no value is recorded for this exact combination — see
+  [Variants → null values](../concepts/variants.md#null-values). A year in which the Area has
+  no data simply comes back `null` here; use [Trend](trend.md) if you want to tell "no feature
+  that year" apart from "no value".
+- `polarity` and `units` come from the indicator's own metadata and are always included.
+  `polarity` is `ASC` where a higher raw value is better and `DESC` where a lower one is — see
+  [metadata](metadata.md).
 
 ## Auth
 
@@ -47,12 +68,14 @@ values are never returned — see [Scope, grants & auth](../concepts/scope-and-a
 
 Checked in this order — the first failure wins:
 
-1. `AREA_NOT_FOUND` (404) — `community_code` doesn't exist for `boundary_type`
+0. `422` — the Area is named both ways, or neither way ([malformed
+   request](../concepts/errors.md#malformed-requests))
+1. `AREA_NOT_FOUND` (404) — no such AUO Area ID, or `community_code` isn't in the mapping for
+   `boundary_type` (and `edition`)
 2. `INDICATOR_NOT_FOUND` (404) — indicator key doesn't exist
 3. `401`/`403` — you can't see this indicator at any area at all
 4. `401`/`403` — you can see the indicator elsewhere, but not at this area
-5. `VARIANT_NOT_SUPPORTED` (422) — variant isn't `r`/`p`/`pl`/`pc`, or `pl`/`pc` isn't
-   available for this area
+5. `VARIANT_NOT_SUPPORTED` (422) — variant isn't `r`/`p`/`pl`/`pc`
 
 `401` is `AUTHENTICATION_REQUIRED` (no credential sent); `403` is `OUT_OF_SCOPE`.
 

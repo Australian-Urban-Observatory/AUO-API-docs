@@ -1,74 +1,120 @@
 # Trend
 
-`trend` — one indicator, one area, across all three releases (2018, 2021, 2024).
+`trend` — one indicator, one area, across the releases (2018, 2021, 2024) in which that area
+exists.
 
 ```
-GET /v1/areas/{community_code}/trend
+GET /v1/areas/trend
 ```
 
 ## Parameters
 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
-| `community_code` | path | yes | |
+| `area` | query, string | one of `area` / `community_code` + `boundary_type` | The [AUO Area ID](../concepts/areas.md) |
+| `community_code` | query, string | with `boundary_type`, instead of `area` | An ABS code, resolved to an Area |
+| `boundary_type` | query, string | with `community_code` | |
+| `edition` | query, string | no | With `community_code`: the ABS edition to look the code up in |
 | `indicator` | query, string | yes | |
-| `boundary_type` | query, string | yes | |
 | `variant` | query, string | no | Default `r` |
+
+The Area is no longer part of the URL path. If you start from a code, the code is resolved
+to an Area (see [Naming an Area in a
+request](../concepts/areas.md#naming-an-area-in-a-request)) and the trend follows **that Area**
+across years — not the code, which can mean a different place in another ABS edition.
 
 ## Response — 200
 
 ```json
 {
+  "area": {
+    "area_id": "ssc-004711",
+    "name": "Brunswick",
+    "boundary_type": "ssc",
+    "source_codes": [
+      { "edition": "SAL 2021", "code": "20141" },
+      { "edition": "SSC 2016", "code": "20204" }
+    ]
+  },
+  "resolved_from": { "edition": "SAL 2021", "code": "20141" },
   "indicator": "walkability",
   "variant": "r",
   "points": [
-    { "year": 2018, "community_code_used": "20660", "value": 3.9 },
-    { "year": 2021, "community_code_used": "20660", "value": 4.1 },
-    { "year": 2024, "community_code_used": "20660", "value": 4.3 }
-  ]
+    { "year": 2018, "value": 3.9 },
+    { "year": 2021, "value": 4.1 },
+    { "year": 2024, "value": 4.3 }
+  ],
+  "unavailable_years": [],
+  "predecessors": []
 }
 ```
 
-A release with no recorded value returns `value: null` for that point rather than omitting
-it — `points` always has exactly three entries.
+- `points` has one entry for each release in which the Area **has a feature**, oldest
+  first. A release where the Area exists but has no recorded value is `value: null`.
+- `unavailable_years` lists the releases in which the Area has no feature at all, each with
+  the reason `AREA_NOT_IN_YEAR`. Those years have no entry in `points`. See
+  [Years the Area isn't in](#years-the-area-isnt-in).
+- `predecessors` lists Areas that merged into this one — see [Predecessors](#predecessors).
+- `area` and `resolved_from` are as in [Lookup](lookup.md#response-200).
 
-`community_code_used` is the area code the value was actually read from for that year.
-For 2021 and 2024 it is always your `community_code`. For 2018 it can differ, when the
-boundary changed and the value was resolved through a concordance mapping (see below), and
-it is `null` when no 2018 code could be resolved.
+`points` is therefore **not** always three entries: a trend can have one, two or three,
+depending on how many releases the Area exists in. Read `points` and `unavailable_years`
+together.
 
-## The 2018 leg
+!!! note "Changed from earlier versions"
+    The `community_code_used` field is gone (an Area has one identity across years, so there
+    is no per-year code to report), and so are the 2018 `warning`s
+    `BOUNDARY_CONCORDANCE_EXCEPTION` and `CONCORDANCE_NOT_SUPPORTED`. 2018 points for suburbs
+    and SA1s are no longer refused: they appear whenever the Area exists in 2018.
 
-2021 and 2024 always resolve directly against your `community_code`. 2018 is different,
-because boundaries changed between releases — see
-[Boundary hierarchy → cross-year concordance](../concepts/boundary-hierarchy.md#cross-year-boundary-concordance):
+## Years the Area isn't in
 
-- **LGA, with a stored concordance mapping:** 2018 resolves via that mapping. Normal `value`,
-  no warning.
-- **LGA, no concordance mapping:** `value: null` for 2018, plus an item-level warning:
+Some Areas are not in every release — a suburb that was created, split or merged between
+releases, or an SA1 that only exists in some editions. For a year with no feature the trend
+has no point and says why:
 
-    ```json
-    { "year": 2018, "value": null, "warning": { "code": "BOUNDARY_CONCORDANCE_EXCEPTION", "message": "...", "details": {} } }
-    ```
+```json
+"unavailable_years": [
+  { "year": 2018,
+    "reason": { "code": "AREA_NOT_IN_YEAR",
+                "message": "This Area has no feature in 2018, so it has no point for that Year.",
+                "details": { "area": "ssc-004711", "year": 2018 } } }
+]
+```
 
-- **SSC or SA1 (any):** concordance isn't defined at all below LGA. 2018 always comes back
-  as `value: null` with:
+The value for that year is never guessed from a neighbouring or older Area. The response is
+still `200`.
 
-    ```json
-    { "year": 2018, "value": null, "warning": { "code": "CONCORDANCE_NOT_SUPPORTED", "message": "...", "details": {} } }
-    ```
+## Predecessors
 
-Either way, the overall response is still `200` — a 2018 concordance gap never fails the
-whole request, and 2021/2024 are unaffected.
+When an Area was formed by a merge, `predecessors` lists the Areas it was formed from, each
+described like any Area (`area_id`, `name`, `boundary_type`, `source_codes`), ordered by name:
+
+```json
+"predecessors": [
+  { "area_id": "lga-000231", "name": "Botany Bay", "boundary_type": "lga",
+    "source_codes": [{ "edition": "LGA 2016", "code": "11100" }] },
+  { "area_id": "lga-000902", "name": "Rockdale", "boundary_type": "lga",
+    "source_codes": [{ "edition": "LGA 2016", "code": "16650" }] }
+]
+```
+
+The later Area gets **no 2018 value** of its own, and the predecessors' values are never
+summed or averaged into it. To see the earlier history, request each predecessor's own trend
+by its `area_id`. Examples of merges: Rockdale and Botany Bay into Bayside (NSW); Mallala into
+Adelaide Plains. (IDs above are illustrative.)
 
 ## Auth
 
 Rejecting, not filtering — same as [Lookup](lookup.md): naming an indicator or area your
 scope doesn't cover gets `401 AUTHENTICATION_REQUIRED` (no credential) or `403
-OUT_OF_SCOPE` (credential presented).
+OUT_OF_SCOPE` (credential presented). Predecessors are listed whatever your scope; their
+values are not returned, and reading them is subject to the usual access checks.
 
 ## Errors
 
+0. `422` — the Area is named both ways, or neither way ([malformed
+   request](../concepts/errors.md#malformed-requests))
 1. `AREA_NOT_FOUND` (404)
 2. `INDICATOR_NOT_FOUND` (404)
 3. `401`/`403` — you can't see this indicator at any area

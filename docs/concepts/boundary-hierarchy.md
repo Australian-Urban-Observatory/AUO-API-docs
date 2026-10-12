@@ -1,9 +1,10 @@
 # Boundary hierarchy
 
-Every value the API returns is recorded for one **area**: a geographic unit identified by a
-`community_code`, a **boundary type**, and a **year** (an area's code can change between
-years at the same boundary type — e.g. suburb boundaries were redrawn between the 2018 and
-2021 ASGS releases).
+Every value the API returns is recorded for one **area**: a geographic unit with a permanent
+[AUO Area ID](areas.md), a **boundary type**, and a value for each **year** it exists in. An
+area's ABS code is not its identity — the same code can mean a different place in another ABS
+edition (suburb boundaries were renumbered between the 2016 and 2021 editions) — so the API
+identifies areas by AUO Area ID. See [Areas & AUO Area IDs](areas.md).
 
 ## Boundary types
 
@@ -22,9 +23,12 @@ state → study_region → lga → ssc (suburb) → sa1 → meshblock
   **never returned directly, to anyone**: every value/profile/ranking-style endpoint refuses
   them as out of scope. They only ever surface as part of an aggregate.
 
-Each area at LGA level and below carries denormalised parent identifiers (its state, study
-region, LGA, suburb, SA1), which is what makes percentile-within-LGA (`pl`) and
-percentile-within-city (`pc`) variants possible — see [Variants & percentile basis](variants.md).
+Each area at LGA level and below has **assigned parents** — the state, study region, LGA (and, for
+SA1s, suburb) the data source files it under, in each year. These assignments are what makes
+percentile-within-LGA (`pl`) and percentile-within-city (`pc`) variants possible and what
+`scope` means on rankings — see [Variants & percentile basis](variants.md) and
+[Areas → assigned parents](areas.md#assigned-parents). They are the source's own assignment,
+not geometric containment.
 
 ## Census/ABS indicators have no meshblock table
 
@@ -35,14 +39,18 @@ means they cannot be rolled up over a custom-drawn region (`CUSTOM_REGION_NOT_SU
 Check `custom_region_supported` on [indicator metadata](../reference/metadata.md) before
 attempting a custom-region rollup.
 
-## Cross-year boundary concordance
+## Comparing across years
 
-Suburb (SSC) boundaries in particular did not survive the 2018→2021 ASGS revision unchanged.
-For LGA-level trend queries that span 2018, the API resolves the 2018 leg via a stored
-concordance mapping where one exists, and returns an explicit warning where it doesn't —
-never a silent interpolation across boundaries that don't actually match. See
-[Trend](../reference/trend.md#the-2018-leg) for the exact behaviour.
+Because an Area is the same place across releases, a [trend](../reference/trend.md) is simply
+one Area's values in each year it exists in. There is no cross-year mapping to apply and
+nothing is interpolated:
 
-For SSC- and SA1-level areas, no concordance is defined at all: a trend spanning 2018 at
-those levels always returns the 2018 point as `null` with a `CONCORDANCE_NOT_SUPPORTED`
-warning.
+- LGAs, SA1s, states and study regions keep the same Area wherever their ABS code is
+  unchanged.
+- Suburbs are matched across the 2016 and 2021 ABS editions by boundary overlap, so most
+  suburbs have a 2018, 2021 and 2024 point. Suburbs that split, merged or moved study region
+  don't match and become separate Areas.
+- Where two Areas merged into one (Rockdale and Botany Bay into Bayside (NSW)), the later Area
+  lists the earlier ones as `predecessors` but never absorbs their values.
+- A year in which an Area has no feature has no point, and the trend says why
+  (`AREA_NOT_IN_YEAR`).

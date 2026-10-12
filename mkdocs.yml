@@ -37,6 +37,7 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Concepts:
+      - Areas & AUO Area IDs: concepts/areas.md
       - Boundary hierarchy: concepts/boundary-hierarchy.md
       - Variants & percentile basis: concepts/variants.md
       - Scope, grants & auth: concepts/scope-and-auth.md

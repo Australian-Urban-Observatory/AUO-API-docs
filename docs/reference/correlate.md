@@ -17,9 +17,15 @@ POST /v1/correlations
   "year": 2021,
   "boundary_type": "ssc",
   "scope": "study_region",
-  "scope_code": "GMEL"
+  "scope_code": "study_region-000007"
 }
 ```
+
+`scope_code` is the [AUO Area ID](../concepts/areas.md) of the state, study region or LGA named
+by `scope` (omit it for `scope: "national"`). The areas correlated are those of `boundary_type`
+that have the scope Area as their assigned parent in `year`, as in [Rank →
+scopes](rank.md#scopes) — so a state/study-region/LGA scoped correlation for 2018 has no
+areas to correlate.
 
 No `variant` field — always computed on raw (`r`) values, like [Distribution](distribution.md).
 
@@ -45,7 +51,7 @@ your effective scope.
 
 ### Errors (create)
 
-1. `SCOPE_NOT_FOUND` (404)
+1. `SCOPE_NOT_FOUND` (404) — `scope_code` isn't the AUO Area ID of an Area of the kind `scope` names
 2. `DUPLICATE_INDICATOR` (422) — `indicator_a` and `indicator_b` are the same key
 3. `INDICATOR_NOT_FOUND` (404) — names every key that failed to resolve
 4. `401`/`403` — indicator access, as above

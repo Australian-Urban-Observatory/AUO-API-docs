@@ -4,23 +4,35 @@
 single call.
 
 ```
-GET /v1/areas/{community_code}/profile
+GET /v1/areas/profile
 ```
 
 ## Parameters
 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
-| `community_code` | path | yes | |
+| `area` | query, string | one of `area` / `community_code` + `boundary_type` | The [AUO Area ID](../concepts/areas.md) |
+| `community_code` | query, string | with `boundary_type`, instead of `area` | An ABS code, resolved to an Area |
+| `boundary_type` | query, string | with `community_code` | |
+| `edition` | query, string | no | With `community_code`: the ABS edition to look the code up in |
 | `year` | query, integer | yes | |
-| `boundary_type` | query, string | yes | |
 | `domain` | query, string | no | Restrict to one domain |
+
+The Area is no longer part of the URL path: use `area` (or `community_code` and
+`boundary_type`). See [Naming an Area in a
+request](../concepts/areas.md#naming-an-area-in-a-request).
 
 ## Response — 200
 
 ```json
 {
-  "community_code": "20660",
+  "area": {
+    "area_id": "lga-000123",
+    "name": "Yarra",
+    "boundary_type": "lga",
+    "source_codes": [{ "edition": "LGA 2021", "code": "27350" }]
+  },
+  "resolved_from": null,
   "year": 2021,
   "indicators": [
     {
@@ -36,6 +48,8 @@ GET /v1/areas/{community_code}/profile
   ]
 }
 ```
+
+`area` and `resolved_from` are as in [Lookup](lookup.md#response-200).
 
 Indicators are ordered by `key`. Only indicators your effective scope covers **at this exact
 area** are listed — a public area shows the non-restricted indicators plus any restricted
@@ -54,6 +68,9 @@ refused.
 
 ## Errors
 
-1. `AREA_NOT_FOUND` (404) — `community_code` doesn't exist for `boundary_type`
+0. `422` — the Area is named both ways, or neither way ([malformed
+   request](../concepts/errors.md#malformed-requests))
+1. `AREA_NOT_FOUND` (404) — no such AUO Area ID, or `community_code` not found for
+   `boundary_type` (and `edition`)
 2. `401`/`403` — no indicator is visible to you at this area
 3. `DOMAIN_NOT_FOUND` (404) — `domain` filter doesn't exist in the catalogue

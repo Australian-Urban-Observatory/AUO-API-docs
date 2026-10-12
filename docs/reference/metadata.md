@@ -15,7 +15,7 @@ GET /v1/indicators/{key}
   "domain": "Transport",
   "description": "Composite score of street connectivity, dwelling density, and daily living access.",
   "units": "index score",
-  "polarity": "positive",
+  "polarity": "ASC",
   "source": "AUO",
   "decimal_places": 1,
   "percentage_scale": false,
@@ -25,9 +25,11 @@ GET /v1/indicators/{key}
 }
 ```
 
-- `polarity` tells you whether a higher raw value is good (`positive`) or bad (`negative`) —
-  needed to interpret `r` correctly; ranking already accounts for this automatically (see
-  [Rank](rank.md)).
+- `polarity` tells you which direction of the raw value is the better one: `ASC` means a
+  higher raw value is better, `DESC` means a lower one is. It is returned exactly as stored.
+  It is needed to interpret `r` correctly; ranking already accounts for this automatically
+  (see [Rank](rank.md)), reading any other or empty value as "higher is better". Percentile
+  variants already have polarity built in (100 is always best).
 - `custom_region_supported` is derived directly from `aggregation_method`: `true` if and
   only if it's `weighted_mean_person`. If `false`, this indicator can never be used in a
   [custom-region rollup](rollup.md#custom-region-rollup).

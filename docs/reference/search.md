@@ -66,7 +66,7 @@ query is still scored normally — a query can carry both `declined` entries and
 ## Search areas
 
 `search-areas` — find an area from a place name, when you don't already have its
-`community_code`.
+[AUO Area ID](../concepts/areas.md).
 
 ```
 GET /v1/search/areas?q={place name}
@@ -77,7 +77,7 @@ coordinate, use [Spatial → point-in-polygon](spatial.md#point-in-polygon) inst
 
 ### Response — 200
 
-Codes in this example are illustrative.
+IDs and codes in this example are illustrative.
 
 ```json
 {
@@ -85,18 +85,23 @@ Codes in this example are illustrative.
   "no_match": false,
   "candidates": [
     {
-      "community_code": "27350",
+      "area_id": "lga-000123",
       "boundary_type": "lga",
       "name": "Yarra",
+      "source_codes": [
+        { "edition": "LGA 2021", "code": "27350" },
+        { "edition": "LGA 2016", "code": "27350" }
+      ],
       "context": "VIC",
       "years": [2018, 2021, 2024],
       "score": 1.0,
       "reason": "matched “yarra”"
     },
     {
-      "community_code": "21310",
+      "area_id": "lga-000124",
       "boundary_type": "lga",
       "name": "Yarra Ranges",
+      "source_codes": [{ "edition": "LGA 2021", "code": "27450" }],
       "context": "VIC",
       "years": [2018, 2021, 2024],
       "score": 0.5,
@@ -106,13 +111,21 @@ Codes in this example are illustrative.
 }
 ```
 
+- `area_id` is the Area's [AUO Area ID](../concepts/areas.md): pass it as `area=` to the other
+  endpoints. Search no longer returns a bare `community_code`, because a code on its own is
+  ambiguous across ABS editions; `source_codes` lists the codes the Area is known by, newest
+  edition first.
 - `boundary_type` is one of `state`, `study_region`, `lga`, `ssc`. SA1s and meshblocks have
   no names, so they're never returned.
-- `name` is the area's name. `context` locates it for a human — the state for an LGA, the
-  LGA and state for a suburb — and is `null` for a state or study region.
-- `years` lists the releases the area exists in. The `community_code` is the same across
-  them, but see [Boundary hierarchy](../concepts/boundary-hierarchy.md) for why codes can
-  change between releases.
+- `name` is the area's name in its **newest** year. A search also matches a name the area had in
+  an earlier year, so a suburb that was renamed is still found by its old name — but it is
+  labelled with the current one.
+- `context` locates it for a human — the state for an LGA, the LGA and state for a suburb — and
+  is `null` for a state or study region. It comes from the area's [assigned
+  parents](../concepts/areas.md#assigned-parents), so an area that exists only in 2018 has none.
+- `years` lists the releases the area exists in. An Area keeps its ID across them; see
+  [Areas across years](../concepts/areas.md#areas-across-years) for how suburbs that were
+  renumbered between ABS editions are matched.
 - Matching ignores case and punctuation (`Merri-bek`, `merri bek` and `MERRI-BEK` are the
   same). A query word matches a name word exactly, or — if the query word is 3 or more
   characters — as a prefix. One-character words are ignored, as are words that match nothing
@@ -121,7 +134,7 @@ Codes in this example are illustrative.
   Ranges*. Including a boundary word — `lga`, `council`, `suburb`, `state` and similar —
   prefers that kind of area over a same-named one of another kind.
 - Ordered by descending `score`, then coarsest boundary type first, then name, then
-  `community_code`; capped at 20. `score` is relative to the best match for this query, so
+  `area_id`; capped at 20. `score` is relative to the best match for this query, so
   the top candidate is `1.0`.
 - There is no `declined` field: a topic belongs in indicator search, not here.
 
@@ -130,6 +143,8 @@ Codes in this example are illustrative.
 Only areas where your effective scope lets you see at least one indicator are candidates.
 That is every state, study region and LGA for everyone — but a **suburb only appears if your
 access covers it**. An unauthenticated search for a suburb name returns `no_match: true`.
+Access to a suburb is access to that exact Area, not to an ABS code, so a code that a later ABS
+edition reuses for a different place does not make that other place visible.
 
 ### Errors
 

@@ -11,19 +11,34 @@ recomputed against the *caller's own* scope — see
 POST /v1/comparisons/areas
 ```
 
+Name the areas by [AUO Area ID](../concepts/areas.md):
+
 ```json
 {
-  "community_codes": ["20660", "20140", "20310"],
-  "boundary_types": ["lga", "lga", "lga"],
+  "areas": ["lga-000123", "lga-000044", "lga-000310"],
   "indicator": "walkability",
   "year": 2021,
   "variant": "r"
 }
 ```
 
-`boundary_types` is positional against `community_codes` — areas may be of different
-boundary types within the same request, each evaluated at its own type. `variant` defaults
-to `r`.
+or by ABS code, in which case `boundary_types` is positional against `community_codes` (areas
+may be of different boundary types within the same request) and `edition` optionally fixes the
+ABS edition the codes are looked up in:
+
+```json
+{
+  "community_codes": ["27350", "21310"],
+  "boundary_types": ["lga", "lga"],
+  "edition": "LGA 2021",
+  "indicator": "walkability",
+  "year": 2021
+}
+```
+
+Give `areas` **or** `community_codes` with `boundary_types`, never both. `variant` defaults to
+`r`. Each code is resolved to an Area exactly as in a [lookup](lookup.md): the newest ABS
+edition containing it unless `edition` says otherwise.
 
 ### Response — 201
 
@@ -36,18 +51,28 @@ to `r`.
     "year": 2021,
     "variant": "r",
     "areas": [
-      { "community_code": "20660", "boundary_type": "lga", "value": 9.1 },
-      { "community_code": "20140", "boundary_type": "lga", "value": 8.7 },
-      { "community_code": "20310", "boundary_type": "lga", "value": 7.9 }
+      { "area_id": "lga-000123", "name": "Yarra", "boundary_type": "lga",
+        "source_codes": [{ "edition": "LGA 2021", "code": "27350" }], "value": 9.1 },
+      { "area_id": "lga-000044", "name": "Melbourne", "boundary_type": "lga",
+        "source_codes": [{ "edition": "LGA 2021", "code": "24600" }], "value": 8.7 },
+      { "area_id": "lga-000310", "name": "Port Phillip", "boundary_type": "lga",
+        "source_codes": [{ "edition": "LGA 2021", "code": "25900" }], "value": 7.9 }
     ]
   }
 }
 ```
 
+Each entry is the Area (as everywhere else — `area_id`, `name`, `boundary_type`,
+`source_codes`) plus its `value`. The comparison **stores the Areas it resolved**, not the
+codes you sent, so it keeps comparing the same places whichever ABS edition a code belonged to.
+
 ### Errors (create)
 
-1. `INSUFFICIENT_AREAS` (422) — fewer than 2 `community_codes` — checked before resolving any of them
-2. `AREA_NOT_FOUND` (404) — names **every** code that failed to resolve, not just the first
+0. `422` — Areas named both ways, `boundary_types` not the same length as `community_codes`, or
+   another [malformed request](../concepts/errors.md#malformed-requests)
+1. `INSUFFICIENT_AREAS` (422) — fewer than 2 Areas named — checked before resolving any of them
+2. `AREA_NOT_FOUND` (404) — names **every** reference that failed to resolve (in
+   `details.areas` for AUO Area IDs, `details.community_codes` for codes), not just the first
 3. `INDICATOR_NOT_FOUND` (404)
 4. `VARIANT_NOT_SUPPORTED` (422)
 
@@ -66,7 +91,8 @@ Recomputes live from the stored inputs, restricted to the intersection of those 
 **your** effective scope — an area is included only if you can see this indicator at it.
 Areas you can't see are omitted from `areas` (not returned as `null`). The retrieved body is
 `{indicator, year, variant, areas}`, without the `id`/`url`/`result` wrapper. Supports
-`Accept: text/csv` for a CSV response instead of JSON.
+`Accept: text/csv` for a CSV response instead of JSON; in the CSV, the `source_codes`
+column is a JSON-encoded list in a single cell.
 
 ### Errors (retrieve)
 

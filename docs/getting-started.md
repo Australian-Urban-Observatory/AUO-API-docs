@@ -15,9 +15,28 @@ Every endpoint is versioned under `/v1`:
 
 ## Versioning
 
-A version prefix, once released, is a stable contract: existing fields and status codes
-never change meaning within `/v1`. New, optional fields may be added without notice. A
-breaking change ships under a new prefix (`/v2`) rather than changing `/v1` underneath you.
+Every endpoint lives under a version prefix (`/v1` today).
+
+!!! warning "`/v1` was revised before public release"
+    Because the API is not yet publicly deployed, `/v1` was changed in place when areas
+    moved from ABS `community_code`s to permanent [AUO Area IDs](concepts/areas.md). If you
+    built against an earlier draft of this manual:
+
+    - Requests name an area with `area=<AUO Area ID>`. `community_code` + `boundary_type`
+      still works (optionally with `edition`), resolved to an Area.
+    - Responses carry an `area` object (`area_id`, `name`, `boundary_type`, `source_codes`)
+      instead of a bare `community_code`; ranking entries are `{area_id, value, rank}`.
+    - `GET /v1/areas/{code}/profile`, `/trend` and `/neighbours` are now
+      `GET /v1/areas/profile`, `/v1/areas/trend` and `/v1/areas/neighbours`, with the area in
+      the query string.
+    - `scope_code` on rankings, distributions and correlations is an AUO Area ID.
+    - A trend no longer returns `community_code_used` or the 2018 concordance warnings; it
+      returns only the years an area exists in, plus `unavailable_years` and `predecessors`.
+    - `pl`/`pc` are served wherever a value is stored, and no longer refused for lack of a
+      parent.
+    - `polarity` is `ASC`/`DESC`; custom-region `meshblock_count` is the region's size.
+    - Any list of areas you keep (saved selections, joins to your own data) should be keyed on
+      AUO Area ID, not ABS code; `source_codes` on every area gives you the codes to join on.
 
 Requesting a prefix that doesn't exist, or one that has been withdrawn, is rejected before
 your request reaches any handler:
@@ -71,18 +90,23 @@ lose it the AUO team can replace it (which revokes the old one).
 ## Making your first request
 
 ```bash
-curl "{base_url}/v1/values?community_code=20660&boundary_type=lga&indicator=walkability&year=2021"
+curl "{base_url}/v1/values?community_code=27350&boundary_type=lga&indicator=walkability&year=2021"
 ```
 
 ```json
 {
-  "community_code": "20660",
-  "boundary_type": "lga",
+  "area": {
+    "area_id": "lga-000123",
+    "name": "Yarra",
+    "boundary_type": "lga",
+    "source_codes": [{ "edition": "LGA 2021", "code": "27350" }]
+  },
+  "resolved_from": { "edition": "LGA 2021", "code": "27350" },
   "indicator": "walkability",
   "year": 2021,
   "variant": "r",
   "value": 4.2,
-  "polarity": "positive",
+  "polarity": "ASC",
   "units": "index score"
 }
 ```
@@ -91,4 +115,16 @@ No `Authorization` header was needed here because `walkability` is a non-restric
 indicator and this area is at LGA level. See [API Reference → Lookup a
 value](reference/lookup.md) for the full parameter and error reference for this endpoint.
 
-Don't know the `community_code` for a place? [Search areas by name](reference/search.md#search-areas).
+This request named the place by its ABS code, which the API resolved to an Area:
+`resolved_from` says which ABS code and edition matched, and `area.area_id` is the Area's
+permanent **AUO Area ID**. Use the ID from now on — the same call becomes:
+
+```bash
+curl "{base_url}/v1/values?area=lga-000123&indicator=walkability&year=2021"
+```
+
+(IDs and codes in this manual's examples are illustrative.)
+
+Don't know the ID for a place? [Search areas by name](reference/search.md#search-areas), or
+[look one up from a coordinate](reference/spatial.md#point-in-polygon). See
+[Areas & AUO Area IDs](concepts/areas.md) for how IDs relate to ABS codes.

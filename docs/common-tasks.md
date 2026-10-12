@@ -3,6 +3,12 @@
 Real questions, translated into concrete calls. Each of these is deceptively simple until
 you hit the ambiguity called out underneath it — that's the point of this page.
 
+!!! note "Places are named by AUO Area ID"
+    Examples use illustrative [AUO Area IDs](concepts/areas.md) such as `lga-000123`. Get real
+    ones from [area search](reference/search.md#search-areas) or a
+    [coordinate lookup](reference/spatial.md#point-in-polygon). Where an endpoint takes a single
+    place you can also send an ABS `community_code` with `boundary_type`.
+
 !!! note "Suburb and SA1 calls need an API key"
     Public access covers non-restricted indicators at state, study-region and LGA level only.
     Every example below that uses `boundary_type=ssc` or `sa1` needs an `Authorization:
@@ -22,21 +28,27 @@ GET /v1/rankings?indicator=liveability_index&year=2024&boundary_type=ssc
 Swap `variant` for `r`, `pl`, or `pc` and you can get a different winner — see
 [Variants & percentile basis](concepts/variants.md). Always say which basis you used. The
 ranking covers only the suburbs your access reaches; with no suburb access at all you get a
-`401`/`403`, not an empty list.
+`401`/`403`, not an empty list. Each ranking entry carries the suburb's `area_id`; look up its
+name with [area search](reference/search.md#search-areas) or [Lookup](reference/lookup.md).
 
 ## "Rank every suburb in my LGA, worst to best"
 
 ```
 GET /v1/rankings?indicator=liveability_index&year=2024&boundary_type=ssc
-    &scope=lga&scope_code=20660&direction=worst&limit=1000
+    &scope=lga&scope_code=lga-000123&direction=worst&limit=1000
 ```
+
+`scope_code` is the LGA's AUO Area ID. The suburbs ranked are those the data source assigns to
+that LGA in 2024, which is not always every suburb that touches it — see
+[Rank → scopes](reference/rank.md#scopes). A scoped ranking for 2018 is empty; use
+`scope=national`.
 
 ## "Which component indicator is dragging this suburb's score down?"
 
 ```
 POST /v1/comparisons/indicators
 { "indicator_keys": ["walkability", "public_transport_access", "social_infrastructure_access"],
-  "community_code": "20141", "boundary_type": "ssc", "year": 2024 }
+  "area": "ssc-004711", "year": 2024 }
 ```
 
 See [Compare indicators](reference/compare-indicators.md) — the response includes each
@@ -47,7 +59,7 @@ indicator's polarity and units alongside its value, so you can tell "low and bad
 
 ```
 GET /v1/distribution?indicator=dwelling_density&year=2024&boundary_type=sa1
-    &scope=lga&scope_code=20660&community_code=20660010101
+    &scope=lga&scope_code=lga-000123&area=sa1-001234
 ```
 
 `own.position` tells you where it sits (`below_q1`, `q1_to_median`, `median_to_q3`,
@@ -56,12 +68,14 @@ GET /v1/distribution?indicator=dwelling_density&year=2024&boundary_type=sa1
 ## "Has this changed since 2018?"
 
 ```
-GET /v1/areas/20660/trend?indicator=public_transport_access&boundary_type=lga
+GET /v1/areas/trend?area=lga-000123&indicator=public_transport_access
 ```
 
-Check every point's `warning` field before trusting the 2018 value — see
-[Trend → the 2018 leg](reference/trend.md#the-2018-leg). At SSC/SA1 level, 2018 is *never*
-directly comparable.
+`points` has an entry for each release the area exists in, so check `unavailable_years` for
+releases it is missing from and `predecessors` for areas that merged into it — see
+[Trend](reference/trend.md). Suburbs and SA1s have 2018 points too when the area exists in
+2018, but a suburb that split or merged between ABS editions is a different Area with its own
+history.
 
 ## "Which SA1s fall inside this precinct boundary, and what's their combined profile?"
 
@@ -74,18 +88,19 @@ POST /v1/spatial/contains
 
 Then create a [custom region](reference/rollup.md#custom-region-rollup) from the same
 polygon to get an aggregate value per indicator, or call
-[Profile](reference/profile.md) per SA1 if you need the full per-area breakdown rather than
-one combined number. Custom regions are built from meshblocks, so they need access that
-covers meshblocks for the indicator, and a region must contain enough contributing
-meshblocks (5 by default) — see [Rollup → minimum size](reference/rollup.md#minimum-size).
+[Profile](reference/profile.md) per SA1 (by the `area_id`s the first call returned) if you
+need the full per-area breakdown rather than one combined number. Custom regions are built
+from meshblocks, so they need access that covers meshblocks for the indicator, and a region
+must contain enough meshblocks (5 by default) — see
+[Rollup → minimum size](reference/rollup.md#minimum-size).
 
 ## "Which neighbouring suburbs do better than mine on X?"
 
 ```
-GET /v1/areas/20141/neighbours?boundary_type=ssc&year=2024
+GET /v1/areas/neighbours?area=ssc-004711&year=2024
 ```
 
-Then feed the returned codes into
+Then feed the returned `area_id`s into
 [Compare areas](reference/compare-areas.md) with your own suburb included.
 
 ## "What's the correlation between density and social infrastructure access?"
@@ -93,18 +108,30 @@ Then feed the returned codes into
 ```
 POST /v1/correlations
 { "indicator_a": "dwelling_density", "indicator_b": "social_infrastructure_access",
-  "year": 2024, "boundary_type": "ssc", "scope": "study_region", "scope_code": "GMEL" }
+  "year": 2024, "boundary_type": "ssc", "scope": "study_region",
+  "scope_code": "study_region-000007" }
 ```
 
-## "I only know the place name — what's its code?"
+## "I only know the place name — what's its ID?"
 
 ```
 GET /v1/search/areas?q=brunswick
 ```
 
-Candidates come back with `community_code`, `boundary_type`, and `context` (the LGA and
-state) so you can tell two same-named places apart. Suburbs only appear if your access covers
-them. See [Search → areas](reference/search.md#search-areas).
+Candidates come back with `area_id`, `boundary_type`, `source_codes`, and `context` (the LGA
+and state) so you can tell two same-named places apart. Suburbs only appear if your access
+covers them. See [Search → areas](reference/search.md#search-areas).
+
+## "I have an ABS code from my own data — what Area is it?"
+
+```
+GET /v1/values?community_code=20141&boundary_type=ssc&indicator=walkability&year=2024
+```
+
+The response's `area.area_id` is the permanent ID, and `resolved_from` says which ABS edition
+the code matched. Without `edition`, a code is read in the newest edition that contains it —
+so for suburb codes, which differ between the 2016 and 2021 editions, say which you mean with
+`&edition=SSC%202016` (or `SAL%202021`). See [Areas](concepts/areas.md#naming-an-area-in-a-request).
 
 ## "I don't know the indicator key — I just know what I mean"
 

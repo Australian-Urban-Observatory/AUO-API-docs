@@ -32,13 +32,19 @@ access does not. So:
 
 ## Minimum size
 
-A roll-up over very few meshblocks is close to a raw meshblock value, so it is refused unless
-enough of them actually contribute. The default minimum is **5**. It is counted *after*
-dropping meshblocks that are out of your scope or have no value or no population weight —
-so a region can contain more than 5 meshblocks and still fall short.
+A roll-up over very few meshblocks is close to a raw meshblock value (a region containing one
+meshblock would return that meshblock's value exactly), so a roll-up is refused unless its
+region holds enough of them. The default minimum is **5**.
+
+The count is of the meshblocks **in the region**, before anything is filtered out for your
+scope, a missing value or a missing population weight. You can't see which meshblocks have
+data, so the number you can reason about is the region's size — which is also what
+[`POST /v1/regions`](#create-a-region) reports as `meshblock_count`. A region with 5 or more
+meshblocks is never refused for size, even if only a few of them end up contributing. A region
+or group with **no** meshblocks at all isn't a meshblock roll-up and isn't subject to the minimum.
 
 When the minimum isn't met you get `422 INSUFFICIENT_DATA` with no value, and the error
-`details` tell you how far short you are:
+`details` say how many meshblocks the region has and what the minimum is:
 
 ```json
 {
@@ -46,14 +52,20 @@ When the minimum isn't met you get `422 INSUFFICIENT_DATA` with no value, and th
     "code": "INSUFFICIENT_DATA",
     "message": "...",
     "details": { "region_id": 91, "indicator": "walkability", "year": 2021,
-                 "variant": "r", "contributing_meshblocks": 3, "minimum_meshblocks": 5 }
+                 "variant": "r", "meshblocks": 3, "minimum_meshblocks": 5 }
   }
 }
 ```
 
-For an area group the minimum applies to its meshblock members whenever any of them
-contributes; adding LGA or suburb members doesn't satisfy it. A group with no meshblock
-members isn't affected.
+For an area group the minimum applies to the group's **meshblock members** whenever it has any;
+adding LGA or suburb members doesn't satisfy it, because their values are public and could
+be subtracted from the mean to recover the meshblocks'. A group with no meshblock members isn't
+affected.
+
+!!! note "What the minimum does not do"
+    It stops a single meshblock's value being returned. It does not stop someone from inferring
+    a value by differencing two regions that differ by one meshblock. Don't rely on a roll-up
+    to hide the contribution of a small area.
 
 ## Area group rollup
 
@@ -65,7 +77,8 @@ Area groups are predefined by the AUO team; ask for the id of the group you need
 
 Averages the values of the group's member areas (an unweighted mean, rounded to the
 indicator's precision), restricted to members within **your** effective scope and excluding
-any member with no recorded value for that indicator/year/variant. Members aren't expanded —
+any member with no recorded value for that indicator/year/variant. A group's members are
+[Areas](../concepts/areas.md) of any boundary type. Members aren't expanded —
 a member that is an LGA contributes the LGA's own value, not its suburbs'.
 
 ### Response — 200
@@ -90,9 +103,9 @@ group's total membership.
 2. `INDICATOR_NOT_FOUND` (404)
 3. `401`/`403` — you can't see the indicator at any area
 4. `VARIANT_NOT_SUPPORTED` (422)
-5. `401`/`403` — the group has members, but none are visible to you
-6. `INSUFFICIENT_DATA` (422) — no visible member has a value for this indicator/year/variant
-7. `INSUFFICIENT_DATA` (422) — too few meshblock members contribute ([minimum size](#minimum-size))
+5. `INSUFFICIENT_DATA` (422) — the group has too few meshblock members ([minimum size](#minimum-size))
+6. `401`/`403` — the group has members, but none are visible to you
+7. `INSUFFICIENT_DATA` (422) — no visible member has a value for this indicator/year/variant
 
 ## Custom region rollup
 
@@ -117,7 +130,8 @@ POST /v1/regions
 `label` is optional. Creating a region doesn't need a key and doesn't read any values — the
 access check happens when you ask for values. If the polygon resolves to zero meshblocks,
 nothing is created, so `meshblock_count` is never `0` for a region you can subsequently
-fetch.
+fetch. A region with fewer meshblocks than the [minimum](#minimum-size) *is* created, but
+asking it for values is refused.
 
 **Errors:** `CUSTOM_REGION_INVALID_GEOMETRY` (400) — malformed, self-intersecting, or over
 5,000 vertices; `CUSTOM_REGION_EMPTY` (422) — valid polygon, zero meshblocks fully contained.
@@ -139,12 +153,14 @@ Computes the person-weighted mean of the region's meshblock-level values, live, 
   "year": 2021,
   "variant": "r",
   "value": 6.1,
-  "meshblock_count": 44
+  "meshblock_count": 47
 }
 ```
 
-`meshblock_count` here is the number of **contributing** meshblocks (survived scope + value +
-weight filtering) — it can be lower than the region's total membership reported at creation.
+`meshblock_count` here is the region's **size** — the same number `POST /v1/regions` reported
+at creation — not the number of meshblocks that contributed a value. (It used to be the
+contributing count; reporting that beside a value could reveal that the value was a single
+raw meshblock's.) You are never told how many meshblocks had data.
 
 **Errors:**
 
@@ -152,9 +168,11 @@ weight filtering) — it can be lower than the region's total membership reporte
 2. `INDICATOR_NOT_FOUND` (404)
 3. `CUSTOM_REGION_NOT_SUPPORTED` (422) — indicator's `aggregation_method` is `unsupported`
 4. `CUSTOM_REGION_VARIANT_NOT_SUPPORTED` (422) — anything other than `r`
-5. `401 AUTHENTICATION_REQUIRED` / `403 OUT_OF_SCOPE` — you can't see the indicator anywhere,
-   or your access doesn't cover any of the region's meshblocks for it
-6. `INSUFFICIENT_DATA` (422) — fewer than the [minimum](#minimum-size) meshblocks contribute
-7. `INSUFFICIENT_DATA` (422) — every member meshblock was excluded by scope, missing value, or
+5. `401 AUTHENTICATION_REQUIRED` / `403 OUT_OF_SCOPE` — you can't see the indicator anywhere
+   for a roll-up
+6. `INSUFFICIENT_DATA` (422) — the region has fewer than the [minimum](#minimum-size)
+   meshblocks
+7. `401`/`403` — your access doesn't cover any of the region's meshblocks for this indicator
+8. `INSUFFICIENT_DATA` (422) — every member meshblock was excluded by scope, missing value, or
    missing weight (distinct from `CUSTOM_REGION_EMPTY`, which can only happen at creation —
    a region that exists always has at least one member)
