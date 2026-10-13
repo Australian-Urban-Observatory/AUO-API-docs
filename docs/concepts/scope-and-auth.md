@@ -90,8 +90,8 @@ Multi-area endpoints silently drop the areas you can't see and compute over the 
 [Rank](../reference/rank.md), [Distribution](../reference/distribution.md),
 [Correlate](../reference/correlate.md), [Compare areas](../reference/compare-areas.md),
 [Compare indicators](../reference/compare-indicators.md), and the
-[roll-ups](../reference/rollup.md). Counts in the response (`total`, `count`,
-`member_count`) describe the filtered set, not what you asked for.
+[roll-ups](../reference/rollup.md). Counts in the response (`total`, `count`)
+describe the filtered set, not what you asked for.
 
 Two consequences worth knowing:
 

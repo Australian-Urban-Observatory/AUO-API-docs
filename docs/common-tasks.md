@@ -91,7 +91,7 @@ polygon to get an aggregate value per indicator, or call
 [Profile](reference/profile.md) per SA1 (by the `area_id`s the first call returned) if you
 need the full per-area breakdown rather than one combined number. Custom regions are built
 from meshblocks, so they need access that covers meshblocks for the indicator, and a region
-must contain enough meshblocks (5 by default) — see
+must be large enough to be rolled up — see
 [Rollup → minimum size](reference/rollup.md#minimum-size).
 
 ## "Which neighbouring suburbs do better than mine on X?"

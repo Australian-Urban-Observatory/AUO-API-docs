@@ -34,28 +34,30 @@ access does not. So:
 
 A roll-up over very few meshblocks is close to a raw meshblock value (a region containing one
 meshblock would return that meshblock's value exactly), so a roll-up is refused unless its
-region holds enough of them. The default minimum is **5**.
+region holds enough of them. The minimum is not published: the API doesn't tell you the
+threshold, and never reports how many meshblocks a region or group contains.
 
 The count is of the meshblocks **in the region**, before anything is filtered out for your
-scope, a missing value or a missing population weight. You can't see which meshblocks have
-data, so the number you can reason about is the region's size — which is also what
-[`POST /v1/regions`](#create-a-region) reports as `meshblock_count`. A region with 5 or more
-meshblocks is never refused for size, even if only a few of them end up contributing. A region
+scope, a missing value or a missing population weight. A region that meets the minimum is
+never refused for size, even if only a few of its meshblocks end up contributing. A region
 or group with **no** meshblocks at all isn't a meshblock roll-up and isn't subject to the minimum.
 
-When the minimum isn't met you get `422 INSUFFICIENT_DATA` with no value, and the error
-`details` say how many meshblocks the region has and what the minimum is:
+When the minimum isn't met you get `422 INSUFFICIENT_DATA` with no value. The message is
+always "The study area is too small to return a value." and the error `details` only echo
+your request:
 
 ```json
 {
   "error": {
     "code": "INSUFFICIENT_DATA",
-    "message": "...",
-    "details": { "region_id": 91, "indicator": "walkability", "year": 2021,
-                 "variant": "r", "meshblocks": 3, "minimum_meshblocks": 5 }
+    "message": "The study area is too small to return a value.",
+    "details": { "region_id": 91, "indicator": "walkability", "year": 2021, "variant": "r" }
   }
 }
 ```
+
+For an area group the `details` carry `area_group_id` in place of `region_id`. To get a value,
+draw a larger region or use a larger group.
 
 For an area group the minimum applies to the group's **meshblock members** whenever it has any;
 adding LGA or suburb members doesn't satisfy it, because their values are public and could
@@ -89,13 +91,9 @@ a member that is an LGA contributes the LGA's own value, not its suburbs'.
   "indicator": "walkability",
   "year": 2021,
   "variant": "r",
-  "value": 5.8,
-  "member_count": 11
+  "value": 5.8
 }
 ```
-
-`member_count` is the number of members that actually **contributed** a value — not the
-group's total membership.
 
 ### Errors
 
@@ -124,14 +122,13 @@ POST /v1/regions
 ```
 
 ```json
-{ "id": 91, "url": "/v1/regions/91", "meshblock_count": 47 }
+{ "id": 91, "url": "/v1/regions/91" }
 ```
 
 `label` is optional. Creating a region doesn't need a key and doesn't read any values — the
 access check happens when you ask for values. If the polygon resolves to zero meshblocks,
-nothing is created, so `meshblock_count` is never `0` for a region you can subsequently
-fetch. A region with fewer meshblocks than the [minimum](#minimum-size) *is* created, but
-asking it for values is refused.
+nothing is created. A region with fewer meshblocks than the [minimum](#minimum-size) *is*
+created, but asking it for values is refused.
 
 **Errors:** `CUSTOM_REGION_INVALID_GEOMETRY` (400) — malformed, self-intersecting, or over
 5,000 vertices; `CUSTOM_REGION_EMPTY` (422) — valid polygon, zero meshblocks fully contained.
@@ -152,15 +149,11 @@ Computes the person-weighted mean of the region's meshblock-level values, live, 
   "indicator": "walkability",
   "year": 2021,
   "variant": "r",
-  "value": 6.1,
-  "meshblock_count": 47
+  "value": 6.1
 }
 ```
 
-`meshblock_count` here is the region's **size** — the same number `POST /v1/regions` reported
-at creation — not the number of meshblocks that contributed a value. (It used to be the
-contributing count; reporting that beside a value could reveal that the value was a single
-raw meshblock's.) You are never told how many meshblocks had data.
+No meshblock count is returned, so you can't tell how many meshblocks a value rests on.
 
 **Errors:**
 

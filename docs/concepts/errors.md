@@ -78,9 +78,6 @@ access error is only ever reported for something that exists — a nonexistent a
 indicator is always a `404` first. Which requests are refused rather than filtered is
 explained in [Scope, grants & auth](scope-and-auth.md#how-requests-are-checked).
 
-`INSUFFICIENT_DATA` on a roll-up over meshblocks carries `details.meshblocks` (how many the
-region or group contains) and `details.minimum_meshblocks`.
-
 ## Item-level notes
 
 One code never rejects the request — it appears inside an otherwise-`200` response, describing

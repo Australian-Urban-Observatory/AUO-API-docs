@@ -34,7 +34,10 @@ Every endpoint lives under a version prefix (`/v1` today).
       returns only the years an area exists in, plus `unavailable_years` and `predecessors`.
     - `pl`/`pc` are served wherever a value is stored, and no longer refused for lack of a
       parent.
-    - `polarity` is `ASC`/`DESC`; custom-region `meshblock_count` is the region's size.
+    - `polarity` is `ASC`/`DESC`.
+    - Roll-ups no longer return meshblock counts: `meshblock_count` (custom regions) and
+      `member_count` (area-group roll-up) are gone, and an `INSUFFICIENT_DATA` refusal for a
+      roll-up that is too small no longer states a count or the minimum.
     - Any list of areas you keep (saved selections, joins to your own data) should be keyed on
       AUO Area ID, not ABS code; `source_codes` on every area gives you the codes to join on.
 
