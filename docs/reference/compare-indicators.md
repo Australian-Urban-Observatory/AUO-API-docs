@@ -13,8 +13,8 @@ Name the area by [AUO Area ID](../concepts/areas.md):
 
 ```json
 {
-  "indicator_keys": ["walkability", "public_transport_access"],
-  "area": "lga-000123",
+  "indicator_keys": ["walkability_index", "transport_percent_dwellings_400m_regular_pt"],
+  "area": "lga-000084",
   "year": 2021,
   "variant": "r"
 }
@@ -24,7 +24,7 @@ or by ABS code (`community_code` and `boundary_type`, and optionally `edition`):
 
 ```json
 {
-  "indicator_keys": ["walkability", "public_transport_access"],
+  "indicator_keys": ["walkability_index", "transport_percent_dwellings_400m_regular_pt"],
   "community_code": "27350",
   "boundary_type": "lga",
   "year": 2021
@@ -37,30 +37,44 @@ Give one form or the other, never both. `variant` defaults to `r`.
 
 ```json
 {
-  "id": 17,
-  "url": "/v1/comparisons/indicators/17",
+  "id": 448,
+  "url": "/v1/comparisons/indicators/448",
   "result": {
     "area": {
-      "area_id": "lga-000123",
+      "area_id": "lga-000084",
       "name": "Yarra",
       "boundary_type": "lga",
-      "source_codes": [{ "edition": "LGA 2021", "code": "27350" }]
+      "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }]
     },
     "year": 2021,
     "variant": "r",
     "indicators": [
       {
-        "key": "walkability", "value": 9.1, "domain": "Transport",
-        "description": "...", "units": "index score", "polarity": "ASC",
-        "source": "AUO", "decimal_places": 1, "percentage_scale": false,
-        "variants": ["r", "p", "pl", "pc"], "aggregation_method": "weighted_mean_person",
+        "key": "walkability_index",
+        "value": 7.3,
+        "domain": "Walkability",
+        "description": "Walkability for Transport Index",
+        "units": "",
+        "polarity": "ASC",
+        "source": "auo",
+        "decimal_places": 1,
+        "percentage_scale": false,
+        "variants": ["r", "p", "pl", "pc"],
+        "aggregation_method": "weighted_mean_person",
         "custom_region_supported": true
       },
       {
-        "key": "public_transport_access", "value": 6.4, "domain": "Transport",
-        "description": "...", "units": "% of dwellings", "polarity": "ASC",
-        "source": "AUO", "decimal_places": 1, "percentage_scale": true,
-        "variants": ["r", "p", "pl", "pc"], "aggregation_method": "weighted_mean_person",
+        "key": "transport_percent_dwellings_400m_regular_pt",
+        "value": 85.3,
+        "domain": "Transport",
+        "description": "% of dwellings within 400m of public transport with regular 30 minute weekday service (7am-7pm)",
+        "units": "%",
+        "polarity": "ASC",
+        "source": "auo",
+        "decimal_places": 1,
+        "percentage_scale": true,
+        "variants": ["r", "p", "pl", "pc"],
+        "aggregation_method": "weighted_mean_person",
         "custom_region_supported": true
       }
     ]

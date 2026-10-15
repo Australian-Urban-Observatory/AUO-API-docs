@@ -15,8 +15,8 @@ Name the areas by [AUO Area ID](../concepts/areas.md):
 
 ```json
 {
-  "areas": ["lga-000123", "lga-000044", "lga-000310"],
-  "indicator": "walkability",
+  "areas": ["lga-000084", "lga-000067", "lga-000048"],
+  "indicator": "walkability_index",
   "year": 2021,
   "variant": "r"
 }
@@ -28,10 +28,10 @@ ABS edition the codes are looked up in:
 
 ```json
 {
-  "community_codes": ["27350", "21310"],
+  "community_codes": ["27350", "24600"],
   "boundary_types": ["lga", "lga"],
   "edition": "LGA 2021",
-  "indicator": "walkability",
+  "indicator": "walkability_index",
   "year": 2021
 }
 ```
@@ -44,19 +44,34 @@ edition containing it unless `edition` says otherwise.
 
 ```json
 {
-  "id": 42,
-  "url": "/v1/comparisons/areas/42",
+  "id": 217,
+  "url": "/v1/comparisons/areas/217",
   "result": {
-    "indicator": "walkability",
+    "indicator": "walkability_index",
     "year": 2021,
     "variant": "r",
     "areas": [
-      { "area_id": "lga-000123", "name": "Yarra", "boundary_type": "lga",
-        "source_codes": [{ "edition": "LGA 2021", "code": "27350" }], "value": 9.1 },
-      { "area_id": "lga-000044", "name": "Melbourne", "boundary_type": "lga",
-        "source_codes": [{ "edition": "LGA 2021", "code": "24600" }], "value": 8.7 },
-      { "area_id": "lga-000310", "name": "Port Phillip", "boundary_type": "lga",
-        "source_codes": [{ "edition": "LGA 2021", "code": "25900" }], "value": 7.9 }
+      {
+        "area_id": "lga-000084",
+        "name": "Yarra",
+        "boundary_type": "lga",
+        "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }],
+        "value": 7.3
+      },
+      {
+        "area_id": "lga-000067",
+        "name": "Melbourne",
+        "boundary_type": "lga",
+        "source_codes": [{ "edition": "LGA 2021", "code": "24600" }, { "edition": "LGA 2016", "code": "24600" }],
+        "value": 9.9
+      },
+      {
+        "area_id": "lga-000048",
+        "name": "Bayside (Vic.)",
+        "boundary_type": "lga",
+        "source_codes": [{ "edition": "LGA 2021", "code": "20910" }, { "edition": "LGA 2016", "code": "20910" }],
+        "value": 1.1
+      }
     ]
   }
 }

@@ -20,13 +20,34 @@ GET /v1/search/indicators?q={free text}
 
 ### Response — 200
 
+`GET /v1/search/indicators?q=how easy it is to walk to shops`
+
 ```json
 {
   "query": "how easy it is to walk to shops",
   "no_match": false,
   "candidates": [
-    { "key": "walkability", "score": 1.0, "reason": "matched “walk”, “shops”" },
-    { "key": "daily_living_access", "score": 0.5, "reason": "matched “shops”" }
+    { "key": "walkability_index", "reason": "matched “walk”", "score": 1.0 },
+    {
+      "key": "walkability_closest_activity_centre",
+      "reason": "matched “walk”",
+      "score": 0.6666666666666666
+    },
+    {
+      "key": "walkability_daily_living_score",
+      "reason": "matched “walk”",
+      "score": 0.6666666666666666
+    },
+    {
+      "key": "walkability_dwelling_density",
+      "reason": "matched “walk”",
+      "score": 0.6666666666666666
+    },
+    {
+      "key": "walkability_street_connectivity",
+      "reason": "matched “walk”",
+      "score": 0.6666666666666666
+    }
   ]
 }
 ```
@@ -50,10 +71,13 @@ adjacent:
 {
   "query": "show me the pokies data",
   "no_match": true,
+  "candidates": [],
   "declined": [
-    { "term": "pokies", "reason": "We hold alcohol outlet density, but no gambling or gaming machine data." }
-  ],
-  "candidates": []
+    {
+      "term": "pokies",
+      "reason": "We hold alcohol outlet density, but no gambling or gaming machine data."
+    }
+  ]
 }
 ```
 
@@ -77,7 +101,7 @@ coordinate, use [Spatial → point-in-polygon](spatial.md#point-in-polygon) inst
 
 ### Response — 200
 
-IDs and codes in this example are illustrative.
+`GET /v1/search/areas?q=my LGA is Yarra` (trimmed to the first two of the twelve candidates the call returns):
 
 ```json
 {
@@ -85,27 +109,24 @@ IDs and codes in this example are illustrative.
   "no_match": false,
   "candidates": [
     {
-      "area_id": "lga-000123",
+      "area_id": "lga-000084",
       "boundary_type": "lga",
       "name": "Yarra",
-      "source_codes": [
-        { "edition": "LGA 2021", "code": "27350" },
-        { "edition": "LGA 2016", "code": "27350" }
-      ],
-      "context": "VIC",
+      "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }],
+      "context": "Victoria",
       "years": [2018, 2021, 2024],
-      "score": 1.0,
-      "reason": "matched “yarra”"
+      "reason": "matched “yarra”",
+      "score": 1.0
     },
     {
-      "area_id": "lga-000124",
+      "area_id": "lga-000085",
       "boundary_type": "lga",
       "name": "Yarra Ranges",
-      "source_codes": [{ "edition": "LGA 2021", "code": "27450" }],
-      "context": "VIC",
+      "source_codes": [{ "edition": "LGA 2021", "code": "27450" }, { "edition": "LGA 2016", "code": "27450" }],
+      "context": "Victoria",
       "years": [2018, 2021, 2024],
-      "score": 0.5,
-      "reason": "matched “yarra”"
+      "reason": "matched “yarra”",
+      "score": 0.5
     }
   ]
 }

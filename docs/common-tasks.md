@@ -4,8 +4,9 @@ Real questions, translated into concrete calls. Each of these is deceptively sim
 you hit the ambiguity called out underneath it — that's the point of this page.
 
 !!! note "Places are named by AUO Area ID"
-    Examples use illustrative [AUO Area IDs](concepts/areas.md) such as `lga-000123`. Get real
-    ones from [area search](reference/search.md#search-areas) or a
+    Examples use real [AUO Area IDs](concepts/areas.md): `lga-000084` is Yarra and `ssc-001205`
+    is the suburb Fitzroy (Vic.). Get the ID for any other place from
+    [area search](reference/search.md#search-areas) or a
     [coordinate lookup](reference/spatial.md#point-in-polygon). Where an endpoint takes a single
     place you can also send an ABS `community_code` with `boundary_type`.
 
@@ -21,21 +22,21 @@ This is the most-asked question against this data, and it's ambiguous until you 
 **basis** and a **boundary level**:
 
 ```
-GET /v1/rankings?indicator=liveability_index&year=2024&boundary_type=ssc
+GET /v1/rankings?indicator=urban_liveability_index&year=2024&boundary_type=ssc
     &scope=national&variant=p&direction=best&limit=1
 ```
 
 Swap `variant` for `r`, `pl`, or `pc` and you can get a different winner — see
 [Variants & percentile basis](concepts/variants.md). Always say which basis you used. The
 ranking covers only the suburbs your access reaches; with no suburb access at all you get a
-`401`/`403`, not an empty list. Each ranking entry carries the suburb's `area_id`; look up its
-name with [area search](reference/search.md#search-areas) or [Lookup](reference/lookup.md).
+`401`/`403`, not an empty list. Each ranking entry carries the suburb's `area_id`, `name` and
+`context` (its LGA and state).
 
 ## "Rank every suburb in my LGA, worst to best"
 
 ```
-GET /v1/rankings?indicator=liveability_index&year=2024&boundary_type=ssc
-    &scope=lga&scope_code=lga-000123&direction=worst&limit=1000
+GET /v1/rankings?indicator=urban_liveability_index&year=2024&boundary_type=ssc
+    &scope=lga&scope_code=lga-000084&direction=worst&limit=1000
 ```
 
 `scope_code` is the LGA's AUO Area ID. The suburbs ranked are those the data source assigns to
@@ -47,8 +48,9 @@ that LGA in 2024, which is not always every suburb that touches it — see
 
 ```
 POST /v1/comparisons/indicators
-{ "indicator_keys": ["walkability", "public_transport_access", "social_infrastructure_access"],
-  "area": "ssc-004711", "year": 2024 }
+{ "indicator_keys": ["social_infrastructure_community_and_sport", "social_infrastructure_education",
+                     "social_infrastructure_health_services"],
+  "area": "ssc-001205", "year": 2024 }
 ```
 
 See [Compare indicators](reference/compare-indicators.md) — the response includes each
@@ -58,8 +60,8 @@ indicator's polarity and units alongside its value, so you can tell "low and bad
 ## "How does this SA1 compare with the median for its LGA?"
 
 ```
-GET /v1/distribution?indicator=dwelling_density&year=2024&boundary_type=sa1
-    &scope=lga&scope_code=lga-000123&area=sa1-001234
+GET /v1/distribution?indicator=urban_liveability_index&year=2024&boundary_type=sa1
+    &scope=lga&scope_code=lga-000084&area=sa1-014610
 ```
 
 `own.position` tells you where it sits (`below_q1`, `q1_to_median`, `median_to_q3`,
@@ -68,7 +70,7 @@ GET /v1/distribution?indicator=dwelling_density&year=2024&boundary_type=sa1
 ## "Has this changed since 2018?"
 
 ```
-GET /v1/areas/trend?area=lga-000123&indicator=public_transport_access
+GET /v1/areas/trend?area=lga-000084&indicator=transport_percent_dwellings_400m_regular_pt
 ```
 
 `points` has an entry for each release the area exists in, so check `unavailable_years` for
@@ -97,7 +99,7 @@ must be large enough to be rolled up — see
 ## "Which neighbouring suburbs do better than mine on X?"
 
 ```
-GET /v1/areas/neighbours?area=ssc-004711&year=2024
+GET /v1/areas/neighbours?area=ssc-001205&year=2024
 ```
 
 Then feed the returned `area_id`s into
@@ -107,9 +109,9 @@ Then feed the returned `area_id`s into
 
 ```
 POST /v1/correlations
-{ "indicator_a": "dwelling_density", "indicator_b": "social_infrastructure_access",
-  "year": 2024, "boundary_type": "ssc", "scope": "study_region",
-  "scope_code": "study_region-000007" }
+{ "indicator_a": "walkability_dwelling_density", "indicator_b": "social_infrastructure_index",
+  "year": 2021, "boundary_type": "lga", "scope": "study_region",
+  "scope_code": "study_region-000014" }
 ```
 
 ## "I only know the place name — what's its ID?"
@@ -125,13 +127,13 @@ covers them. See [Search → areas](reference/search.md#search-areas).
 ## "I have an ABS code from my own data — what Area is it?"
 
 ```
-GET /v1/values?community_code=20141&boundary_type=ssc&indicator=walkability&year=2024
+GET /v1/values?community_code=20924&boundary_type=ssc&indicator=urban_liveability_index&year=2024
 ```
 
 The response's `area.area_id` is the permanent ID, and `resolved_from` says which ABS edition
 the code matched. Without `edition`, a code is read in the newest edition that contains it —
 so for suburb codes, which differ between the 2016 and 2021 editions, say which you mean with
-`&edition=SSC%202016` (or `SAL%202021`). See [Areas](concepts/areas.md#naming-an-area-in-a-request).
+`&edition=SSC%202016` (Fitzroy is `20918` there) or `&edition=SAL%202021`. See [Areas](concepts/areas.md#naming-an-area-in-a-request).
 
 ## "I don't know the indicator key — I just know what I mean"
 
@@ -146,7 +148,7 @@ match. See [Search](reference/search.md).
 ## "How exactly is this indicator calculated?"
 
 ```
-GET /v1/indicators/liveability_index
+GET /v1/indicators/urban_liveability_index
 ```
 
 `description`, `source`, and `aggregation_method` are the fields to read for methodology —

@@ -24,26 +24,30 @@ request](../concepts/areas.md#naming-an-area-in-a-request).
 
 ## Response — 200
 
+`GET /v1/areas/profile?area=lga-000084&year=2021&domain=Transport`
+
+Trimmed here to the first two of the eleven Transport indicators the call returns; the values are as returned. A `null` is a variant with no recorded value (Yarra has no `pl` percentile).
+
 ```json
 {
   "area": {
-    "area_id": "lga-000123",
+    "area_id": "lga-000084",
     "name": "Yarra",
     "boundary_type": "lga",
-    "source_codes": [{ "edition": "LGA 2021", "code": "27350" }]
+    "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }]
   },
   "resolved_from": null,
   "year": 2021,
   "indicators": [
     {
-      "key": "walkability",
+      "key": "transport_closest_bus_with_15_min_service",
       "domain": "Transport",
-      "values": { "r": 4.2, "p": 71.0, "pl": 55.0, "pc": 62.0 }
+      "values": { "r": 717.8, "p": 64.0, "pl": null, "pc": 74.0 }
     },
     {
-      "key": "public_transport_access",
+      "key": "transport_closest_bus_with_30_min_service",
       "domain": "Transport",
-      "values": { "r": null, "p": null, "pl": null, "pc": null }
+      "values": { "r": 629.3, "p": 41.0, "pl": null, "pc": 44.0 }
     }
   ]
 }

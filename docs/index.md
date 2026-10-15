@@ -48,6 +48,6 @@ Every endpoint is under a version prefix (`/v1` today) — see
 [API Versioning](getting-started.md#versioning).
 
 !!! info "Areas are identified by AUO Area ID"
-    Places are named by a permanent **AUO Area ID** (`area=lga-000123`), not by an ABS
+    Places are named by a permanent **AUO Area ID** (`area=lga-000084`), not by an ABS
     code, because an ABS code can mean a different place in another ABS edition. ABS codes are
     still accepted as a lookup. See [Areas & AUO Area IDs](concepts/areas.md).

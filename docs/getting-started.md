@@ -25,7 +25,7 @@ Every endpoint lives under a version prefix (`/v1` today).
     - Requests name an area with `area=<AUO Area ID>`. `community_code` + `boundary_type`
       still works (optionally with `edition`), resolved to an Area.
     - Responses carry an `area` object (`area_id`, `name`, `boundary_type`, `source_codes`)
-      instead of a bare `community_code`; ranking entries are `{area_id, value, rank}`.
+      instead of a bare `community_code`; ranking entries describe the Area (`area_id`, `name`, `context`, `boundary_type`, `source_codes`) plus `value` and `rank`.
     - `GET /v1/areas/{code}/profile`, `/trend` and `/neighbours` are now
       `GET /v1/areas/profile`, `/v1/areas/trend` and `/v1/areas/neighbours`, with the area in
       the query string.
@@ -93,28 +93,28 @@ lose it the AUO team can replace it (which revokes the old one).
 ## Making your first request
 
 ```bash
-curl "{base_url}/v1/values?community_code=27350&boundary_type=lga&indicator=walkability&year=2021"
+curl "{base_url}/v1/values?community_code=27350&boundary_type=lga&indicator=walkability_index&year=2021"
 ```
 
 ```json
 {
   "area": {
-    "area_id": "lga-000123",
+    "area_id": "lga-000084",
     "name": "Yarra",
     "boundary_type": "lga",
-    "source_codes": [{ "edition": "LGA 2021", "code": "27350" }]
+    "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }]
   },
   "resolved_from": { "edition": "LGA 2021", "code": "27350" },
-  "indicator": "walkability",
+  "indicator": "walkability_index",
   "year": 2021,
   "variant": "r",
-  "value": 4.2,
+  "value": 7.3,
   "polarity": "ASC",
-  "units": "index score"
+  "units": ""
 }
 ```
 
-No `Authorization` header was needed here because `walkability` is a non-restricted
+No `Authorization` header was needed here because `walkability_index` is a non-restricted
 indicator and this area is at LGA level. See [API Reference → Lookup a
 value](reference/lookup.md) for the full parameter and error reference for this endpoint.
 
@@ -123,10 +123,10 @@ This request named the place by its ABS code, which the API resolved to an Area:
 permanent **AUO Area ID**. Use the ID from now on — the same call becomes:
 
 ```bash
-curl "{base_url}/v1/values?area=lga-000123&indicator=walkability&year=2021"
+curl "{base_url}/v1/values?area=lga-000084&indicator=walkability_index&year=2021"
 ```
 
-(IDs and codes in this manual's examples are illustrative.)
+The IDs and codes in this manual's examples are real and stable.
 
 Don't know the ID for a place? [Search areas by name](reference/search.md#search-areas), or
 [look one up from a coordinate](reference/spatial.md#point-in-polygon). See
