@@ -1,11 +1,17 @@
 # AUO Data API
 
 The AUO Data API is a REST service in front of the Australian Urban Observatory's
-Postgres/PostGIS database of urban liveability indicators: 206 indicators across 21 domains,
+Postgres/PostGIS database of urban liveability indicators: the full catalogue is 275
+indicators across 20 domains,
 recorded at LGA, suburb (SSC) and SA1 granularity for the 2018, 2021 and 2024 releases, with
 geometry for every boundary and year. Non-restricted indicators are open at state, study-region
 and LGA level with no key; suburb and SA1 data, and partner-restricted indicators, need an
 API key.
+
+The catalogue you see depends on your access: `GET /v1/indicators` omits indicators you
+can't see at any area, so an unauthenticated request returns fewer (218 indicators across 15
+domains when last checked) than the full 275. See
+[Metadata](reference/metadata.md#full-catalogue) and the [scope model](concepts/scope-and-auth.md).
 
 This manual is for developers integrating directly with the API — partner organisations,
 researchers, and anyone building on top of AUO data rather than using the [AUO map](https://new.map.auo.org.au/)
