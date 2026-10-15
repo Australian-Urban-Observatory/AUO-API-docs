@@ -6,6 +6,9 @@
 GET /v1/rankings
 ```
 
+To read **every** area's value rather than a top or bottom N (for a map, say), use
+[Bulk values](bulk-values.md): it has no `limit` cap, and returns all four variants in one call.
+
 ## Query parameters
 
 | Parameter | Type | Required | Notes |

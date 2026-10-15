@@ -6,6 +6,9 @@
 GET /v1/values
 ```
 
+To read one indicator for every area in a scope at once, use [Bulk values](bulk-values.md)
+instead of calling this once per area.
+
 ## Query parameters
 
 | Parameter | Type | Required | Notes |

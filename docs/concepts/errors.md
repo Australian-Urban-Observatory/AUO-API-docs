@@ -60,7 +60,7 @@ the single source of truth — individual endpoint pages only call out which of 
 | `INDICATOR_NOT_FOUND` | 404 | Named indicator key doesn't exist |
 | `VARIANT_NOT_SUPPORTED` | 422 | Variant isn't one of `r`, `p`, `pl`, `pc` |
 | `SCOPE_NOT_FOUND` | 404 | Named ranking/distribution/correlation scope doesn't exist: `scope_code` isn't the AUO Area ID of an Area of the kind `scope` names (an LGA's ID for `lga`, and so on) |
-| `INSUFFICIENT_DATA` | 422 | Not enough data to compute the result: fewer than 2 areas for a distribution/correlation, no contributing member for a roll-up, or a roll-up over too few meshblocks (see [Rollup → minimum size](../reference/rollup.md#minimum-size)) |
+| `INSUFFICIENT_DATA` | 422 | Not enough data to compute the result: a bulk-values boundary type with nothing stored at all, fewer than 2 areas for a distribution/correlation, no contributing member for a roll-up, or a roll-up over too few meshblocks (see [Rollup → minimum size](../reference/rollup.md#minimum-size)) |
 | `DUPLICATE_INDICATOR` | 422 | Correlation requested between an indicator and itself |
 | `CUSTOM_REGION_NOT_SUPPORTED` | 422 | Indicator's `aggregation_method` is `unsupported` — no meshblock source to roll up |
 | `CUSTOM_REGION_EMPTY` | 422 | Submitted polygon fully contains zero meshblocks |
@@ -78,6 +78,7 @@ the single source of truth — individual endpoint pages only call out which of 
 | `OUT_OF_SCOPE` | 403 | A credential was presented, but your effective scope doesn't cover what the request names |
 | `RESOURCE_NOT_FOUND` | 404 | Named computed-resource id (comparison, correlation, region) doesn't exist |
 | `REQUEST_INVALID` | 422 | The request is structurally wrong: a missing or mistyped parameter, or an Area named both ways or neither way (see [Malformed requests](#malformed-requests)) |
+| `SCOPE_TOO_LARGE` | 422 | A [bulk values](../reference/bulk-values.md#response-size) scope holds more than 100,000 areas with a value; narrow the scope |
 | `INVALID_LIMIT` | 422 | `limit` outside 1–1000 |
 | `INSUFFICIENT_AREAS` | 422 | Fewer than 2 Areas in an area comparison |
 | `INSUFFICIENT_INDICATORS` | 422 | Fewer than 2 `indicator_keys` in an indicator comparison |

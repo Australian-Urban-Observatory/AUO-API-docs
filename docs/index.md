@@ -39,6 +39,7 @@ itself.
 | Lookup | One indicator, one area, one year | `GET /v1/values` |
 | Profile | Every indicator for one area | `GET /v1/areas/profile` |
 | Rank | Top/bottom N areas on one indicator | `GET /v1/rankings` |
+| Bulk values | Every area's value for one indicator, in one response | `GET /v1/values/bulk` |
 | Compare areas | Same indicator across several areas | `POST /v1/comparisons/areas` |
 | Compare indicators | Several indicators for one area | `POST /v1/comparisons/indicators` |
 | Trend | One indicator for one area across the releases it exists in | `GET /v1/areas/trend` |
