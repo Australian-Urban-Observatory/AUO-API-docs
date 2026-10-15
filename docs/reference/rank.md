@@ -38,30 +38,67 @@ simply ranks nothing, rather than being reported as not found.
 
 ## Response — 200
 
+`GET /v1/rankings?indicator=walkability_index&year=2021&boundary_type=lga&scope=national&variant=p&direction=best&limit=4`
+
 ```json
 {
-  "indicator": "walkability",
+  "indicator": "walkability_index",
   "year": 2021,
-  "variant": "r",
+  "variant": "p",
   "scope": "national",
   "direction": "best",
-  "total": 542,
+  "total": 171,
   "areas": [
-    { "area_id": "lga-000123", "value": 9.1, "rank": 1 },
-    { "area_id": "lga-000044", "value": 9.1, "rank": 1 },
-    { "area_id": "lga-000310", "value": 8.9, "rank": 3 }
+    {
+      "area_id": "lga-000067",
+      "name": "Melbourne",
+      "context": "Victoria",
+      "boundary_type": "lga",
+      "source_codes": [{ "edition": "LGA 2021", "code": "24600" }, { "edition": "LGA 2016", "code": "24600" }],
+      "value": 100.0,
+      "rank": 1
+    },
+    {
+      "area_id": "lga-000038",
+      "name": "Sydney",
+      "context": "New South Wales",
+      "boundary_type": "lga",
+      "source_codes": [{ "edition": "LGA 2021", "code": "17200" }, { "edition": "LGA 2016", "code": "17200" }],
+      "value": 99.0,
+      "rank": 2
+    },
+    {
+      "area_id": "lga-000084",
+      "name": "Yarra",
+      "context": "Victoria",
+      "boundary_type": "lga",
+      "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }],
+      "value": 99.0,
+      "rank": 2
+    },
+    {
+      "area_id": "lga-000076",
+      "name": "Port Phillip",
+      "context": "Victoria",
+      "boundary_type": "lga",
+      "source_codes": [{ "edition": "LGA 2021", "code": "25900" }, { "edition": "LGA 2016", "code": "25900" }],
+      "value": 98.0,
+      "rank": 4
+    }
   ]
 }
 ```
 
-Each entry is the Area's `area_id`, its `value` and its `rank`. To get names and source
-codes for the entries, look the Areas up by `area_id` (for example with [Lookup](lookup.md) or
-[Compare areas](compare-areas.md)).
+Each entry describes the Area (`area_id`, `name`, `context`, `boundary_type`, `source_codes`) plus
+its `value` and its `rank`. `context` locates the Area for a human, as in
+[area search](search.md#search-areas): the state for an LGA, the LGA and state for a suburb, and
+`null` for a state or study region.
 
 - `total` is the count of areas that had a recorded value and were within **your** effective
   scope — not the size of the scope you requested before filtering.
-- Equal values share the same `rank` (see the tie at rank 1 above); the next distinct value
-  resumes at the count of areas ahead of it, not `rank + 1`.
+- Equal values share the same `rank` (Sydney and Yarra are both rank 2 above); the next distinct
+  value is one more than the count of areas ahead of it, so it skips ranks (Port Phillip is rank
+  4 — three areas are ahead of it — not rank 3).
 - For the raw variant `r`, ranking direction already accounts for the indicator's polarity —
   `direction=best` always means "more liveable," regardless of whether a higher or lower raw
   number is better for that particular indicator (`polarity` `ASC` or `DESC` on the

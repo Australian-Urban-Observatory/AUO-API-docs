@@ -19,20 +19,34 @@ always do `error.details.foo` without a null-check.
 
 ## Malformed requests
 
-A request that is structurally wrong is rejected by the framework before any lookup, with
-`422` and a different body — a `detail` list, not the envelope above:
+A request that is structurally wrong is rejected before any lookup with `422` and the code
+`REQUEST_INVALID`. The envelope is the usual one; `details.errors` lists what was wrong, each with
+a `loc` saying which field:
 
 ```json
-{ "detail": [ { "type": "value_error", "loc": ["query", "area"],
-                "msg": "Give 'area' (an AUO Area ID), or both 'community_code' and 'boundary_type'.",
-                "input": null } ] }
+{
+  "error": {
+    "code": "REQUEST_INVALID",
+    "message": "The request was not valid.",
+    "details": {
+      "errors": [
+        {
+          "type": "value_error",
+          "loc": ["query", "area"],
+          "msg": "Give 'area' (an AUO Area ID), or both 'community_code' and 'boundary_type'.",
+          "input": null
+        }
+      ]
+    }
+  }
+}
 ```
 
-This is what you get for a missing required parameter or a wrongly typed one, and for an
+This is the response to `GET /v1/values?indicator=walkability_index&year=2021`, which names no
+Area. It is what you get for a missing required parameter or a wrongly typed one, and for an
 [Area reference](areas.md#naming-an-area-in-a-request) that names the Area both ways (`area`
 together with `community_code`/`boundary_type`/`edition`), neither way, or `edition` without
-`community_code`. `loc` says which field. Code that handles errors should treat any `422` whose
-body has `detail` instead of `error` as a request-building bug, not a data condition.
+`community_code`. Treat `REQUEST_INVALID` as a request-building bug, not a data condition.
 
 ## Whole-request errors
 
@@ -63,6 +77,7 @@ the single source of truth — individual endpoint pages only call out which of 
 | `INVALID_TOKEN` | 401 | Bearer token is an AUO sign-in token that is malformed, wrongly signed or expired; `details.reason` is `invalid` or `expired` |
 | `OUT_OF_SCOPE` | 403 | A credential was presented, but your effective scope doesn't cover what the request names |
 | `RESOURCE_NOT_FOUND` | 404 | Named computed-resource id (comparison, correlation, region) doesn't exist |
+| `REQUEST_INVALID` | 422 | The request is structurally wrong: a missing or mistyped parameter, or an Area named both ways or neither way (see [Malformed requests](#malformed-requests)) |
 | `INVALID_LIMIT` | 422 | `limit` outside 1–1000 |
 | `INSUFFICIENT_AREAS` | 422 | Fewer than 2 Areas in an area comparison |
 | `INSUFFICIENT_INDICATORS` | 422 | Fewer than 2 `indicator_keys` in an indicator comparison |
@@ -95,7 +110,7 @@ It is reported in the trend's `unavailable_years` list, not as a `null` point:
     { "year": 2018,
       "reason": { "code": "AREA_NOT_IN_YEAR",
                   "message": "This Area has no feature in 2018, so it has no point for that Year.",
-                  "details": { "area": "ssc-004711", "year": 2018 } } }
+                  "details": { "area": "lga-000172", "year": 2018 } } }
   ]
 }
 ```

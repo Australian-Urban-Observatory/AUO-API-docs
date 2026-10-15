@@ -33,27 +33,29 @@ study-region or LGA distribution (use `national`).
 
 ## Response — 200
 
+`GET /v1/distribution?indicator=walkability_index&year=2021&boundary_type=lga&scope=national&area=lga-000084`
+
 ```json
 {
-  "indicator": "walkability",
+  "indicator": "walkability_index",
   "year": 2021,
   "boundary_type": "lga",
   "scope": "national",
-  "min": 2.1,
-  "max": 9.4,
-  "median": 5.6,
-  "q1": 4.2,
-  "q3": 7.1,
-  "count": 542,
+  "count": 171,
+  "min": -4.2,
+  "max": 9.9,
+  "median": -0.8,
+  "q1": -1.85,
+  "q3": 0.8,
   "own": {
     "area": {
-      "area_id": "lga-000123",
+      "area_id": "lga-000084",
       "name": "Yarra",
       "boundary_type": "lga",
-      "source_codes": [{ "edition": "LGA 2021", "code": "27350" }]
+      "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }]
     },
     "resolved_from": null,
-    "value": 9.1,
+    "value": 7.3,
     "position": "above_q3"
   }
 }

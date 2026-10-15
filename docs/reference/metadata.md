@@ -9,14 +9,16 @@ displayed unexplained.
 GET /v1/indicators/{key}
 ```
 
+For example `GET /v1/indicators/walkability_index`:
+
 ```json
 {
-  "key": "walkability",
-  "domain": "Transport",
-  "description": "Composite score of street connectivity, dwelling density, and daily living access.",
-  "units": "index score",
+  "key": "walkability_index",
+  "domain": "Walkability",
+  "description": "Walkability for Transport Index",
+  "units": "",
   "polarity": "ASC",
-  "source": "AUO",
+  "source": "auo",
   "decimal_places": 1,
   "percentage_scale": false,
   "variants": ["r", "p", "pl", "pc"],

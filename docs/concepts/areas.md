@@ -7,7 +7,7 @@ you should store and send back is its **AUO Area ID**.
 ## AUO Area ID
 
 ```
-lga-000123
+lga-000084
 ```
 
 - **Permanent.** An ID is never reused for a different place and never reassigned. An Area
@@ -19,7 +19,8 @@ lga-000123
   code can be two different places. An AUO Area ID is the same place in every release it appears
   in.
 
-IDs in the examples throughout this manual are illustrative.
+The IDs in the examples throughout this manual are real and stable: `lga-000084` is Yarra, and
+`ssc-001205` is the suburb Fitzroy (Vic.).
 
 ## What an Area looks like in a response
 
@@ -27,13 +28,10 @@ Every response that mentions an Area describes it the same way:
 
 ```json
 {
-  "area_id": "ssc-000812",
-  "name": "Brunswick",
+  "area_id": "ssc-001205",
+  "name": "Fitzroy (Vic.)",
   "boundary_type": "ssc",
-  "source_codes": [
-    { "edition": "SAL 2021", "code": "20141" },
-    { "edition": "SSC 2016", "code": "20204" }
-  ]
+  "source_codes": [{ "edition": "SAL 2021", "code": "20924" }, { "edition": "SSC 2016", "code": "20918" }]
 }
 ```
 
@@ -50,7 +48,7 @@ Single-area endpoints ([lookup](../reference/lookup.md), [profile](../reference/
 
 | Form | Parameters |
 |---|---|
-| **AUO Area ID** (preferred) | `area=lga-000123` |
+| **AUO Area ID** (preferred) | `area=lga-000084` |
 | **ABS code** | `community_code=27350&boundary_type=lga`, optionally `&edition=LGA 2021` |
 
 Give one form or the other, never both: mixing them, or leaving both out, is a `422` (see

@@ -8,8 +8,12 @@ so they are also the way to get an ID from a location.
 Every Area in a spatial response is described the same way:
 
 ```json
-{ "area_id": "lga-000123", "name": "Yarra", "boundary_type": "lga",
-  "source_codes": [{ "edition": "LGA 2021", "code": "27350" }] }
+{
+  "area_id": "lga-000084",
+  "name": "Yarra",
+  "boundary_type": "lga",
+  "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }]
+}
 ```
 
 ## Point-in-polygon
@@ -18,12 +22,17 @@ Every Area in a spatial response is described the same way:
 GET /v1/spatial/point?lat={lat}&lon={lon}&boundary_type={type}&year={year}
 ```
 
-Returns the single area of that boundary type/year containing the coordinate.
+Returns the single area of that boundary type/year containing the coordinate. For example
+`GET /v1/spatial/point?lat=-37.8&lon=144.98&boundary_type=lga&year=2021`:
 
 ```json
 {
-  "area": { "area_id": "lga-000123", "name": "Yarra", "boundary_type": "lga",
-            "source_codes": [{ "edition": "LGA 2021", "code": "27350" }] },
+  "area": {
+    "area_id": "lga-000084",
+    "name": "Yarra",
+    "boundary_type": "lga",
+    "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }]
+  },
   "boundary_type": "lga",
   "year": 2021
 }
@@ -50,21 +59,40 @@ no longer part of the URL path.
 
 ```json
 {
-  "area": { "area_id": "lga-000123", "name": "Yarra", "boundary_type": "lga",
-            "source_codes": [{ "edition": "LGA 2021", "code": "27350" }] },
+  "area": {
+    "area_id": "lga-000084",
+    "name": "Yarra",
+    "boundary_type": "lga",
+    "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }]
+  },
   "resolved_from": null,
   "year": 2021,
   "neighbours": [
-    { "area_id": "lga-000044", "name": "Melbourne", "boundary_type": "lga",
-      "source_codes": [{ "edition": "LGA 2021", "code": "24600" }] },
-    { "area_id": "lga-000310", "name": "Port Phillip", "boundary_type": "lga",
-      "source_codes": [{ "edition": "LGA 2021", "code": "25900" }] }
+    {
+      "area_id": "lga-000047",
+      "name": "Banyule",
+      "boundary_type": "lga",
+      "source_codes": [{ "edition": "LGA 2021", "code": "20660" }, { "edition": "LGA 2016", "code": "20660" }]
+    },
+    {
+      "area_id": "lga-000049",
+      "name": "Boroondara",
+      "boundary_type": "lga",
+      "source_codes": [{ "edition": "LGA 2021", "code": "21110" }, { "edition": "LGA 2016", "code": "21110" }]
+    },
+    {
+      "area_id": "lga-000053",
+      "name": "Darebin",
+      "boundary_type": "lga",
+      "source_codes": [{ "edition": "LGA 2021", "code": "21890" }, { "edition": "LGA 2016", "code": "21890" }]
+    }
   ]
 }
 ```
 
 `neighbours` is ordered by AUO Area ID. `resolved_from` is as in [Lookup](lookup.md#response-200).
-Empty `neighbours: []` is a valid `200` if none exist.
+The example is `GET /v1/areas/neighbours?area=lga-000084&year=2021`, trimmed to the first three
+of Yarra's six neighbours. Empty `neighbours: []` is a valid `200` if none exist.
 
 **Errors:** `AREA_NOT_FOUND` (404) — an unknown AUO Area ID, a code that doesn't resolve (this
 includes an unrecognised `boundary_type`), **or** a real Area that has no boundary in `year`
@@ -78,21 +106,51 @@ POST /v1/spatial/contains
 ```
 
 ```json
-{ "polygon": { "type": "Polygon", "coordinates": [[...]] }, "boundary_type": "sa1", "year": 2021 }
+{
+  "polygon": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [144.975, -37.81],
+        [144.99, -37.81],
+        [144.99, -37.795],
+        [144.975, -37.795],
+        [144.975, -37.81]
+      ]
+    ]
+  },
+  "boundary_type": "sa1",
+  "year": 2021
+}
 ```
 
 Returns every area of the given boundary type/year whose geometry lies **entirely within**
-the submitted polygon.
+the submitted polygon. The request above is a box over Fitzroy, and the response is trimmed to the
+first two of the 30 SA1s the call returns.
 
 ```json
 {
   "boundary_type": "sa1",
   "year": 2021,
   "areas": [
-    { "area_id": "sa1-001234", "name": null, "boundary_type": "sa1",
-      "source_codes": [{ "edition": "SA1 2021", "code": "10123456" }] },
-    { "area_id": "sa1-001235", "name": null, "boundary_type": "sa1",
-      "source_codes": [{ "edition": "SA1 2021", "code": "10123457" }] }
+    {
+      "area_id": "sa1-014558",
+      "name": null,
+      "boundary_type": "sa1",
+      "source_codes": [
+        { "edition": "SA1 2021", "code": "20607114108" },
+        { "edition": "SA1 2016", "code": "20607114108" }
+      ]
+    },
+    {
+      "area_id": "sa1-014561",
+      "name": null,
+      "boundary_type": "sa1",
+      "source_codes": [
+        { "edition": "SA1 2021", "code": "20607114111" },
+        { "edition": "SA1 2016", "code": "20607114111" }
+      ]
+    }
   ]
 }
 ```

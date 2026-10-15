@@ -25,24 +25,25 @@ across years — not the code, which can mean a different place in another ABS e
 
 ## Response — 200
 
+`GET /v1/areas/trend?community_code=20924&boundary_type=ssc&indicator=urban_liveability_index`
+
+Named by its SAL 2021 code, so `resolved_from` records which code matched. Naming the same suburb by `area=ssc-001205` returns the same body with `resolved_from: null`.
+
 ```json
 {
   "area": {
-    "area_id": "ssc-004711",
-    "name": "Brunswick",
+    "area_id": "ssc-001205",
+    "name": "Fitzroy (Vic.)",
     "boundary_type": "ssc",
-    "source_codes": [
-      { "edition": "SAL 2021", "code": "20141" },
-      { "edition": "SSC 2016", "code": "20204" }
-    ]
+    "source_codes": [{ "edition": "SAL 2021", "code": "20924" }, { "edition": "SSC 2016", "code": "20918" }]
   },
-  "resolved_from": { "edition": "SAL 2021", "code": "20141" },
-  "indicator": "walkability",
+  "resolved_from": { "edition": "SAL 2021", "code": "20924" },
+  "indicator": "urban_liveability_index",
   "variant": "r",
   "points": [
-    { "year": 2018, "value": 3.9 },
-    { "year": 2021, "value": 4.1 },
-    { "year": 2024, "value": 4.3 }
+    { "year": 2018, "value": 108.5 },
+    { "year": 2021, "value": 108.1 },
+    { "year": 2024, "value": 108.0 }
   ],
   "unavailable_years": [],
   "predecessors": []
@@ -71,14 +72,20 @@ together.
 
 Some Areas are not in every release — a suburb that was created, split or merged between
 releases, or an SA1 that only exists in some editions. For a year with no feature the trend
-has no point and says why:
+has no point and says why. This is the `unavailable_years` of
+`GET /v1/areas/trend?area=lga-000172&indicator=urban_liveability_index` (Bayside (NSW), which
+does not exist in 2018):
 
 ```json
 "unavailable_years": [
-  { "year": 2018,
-    "reason": { "code": "AREA_NOT_IN_YEAR",
-                "message": "This Area has no feature in 2018, so it has no point for that Year.",
-                "details": { "area": "ssc-004711", "year": 2018 } } }
+  {
+    "year": 2018,
+    "reason": {
+      "code": "AREA_NOT_IN_YEAR",
+      "message": "This Area has no feature in 2018, so it has no point for that Year.",
+      "details": { "area": "lga-000172", "year": 2018 }
+    }
+  }
 ]
 ```
 
@@ -92,17 +99,25 @@ described like any Area (`area_id`, `name`, `boundary_type`, `source_codes`), or
 
 ```json
 "predecessors": [
-  { "area_id": "lga-000231", "name": "Botany Bay", "boundary_type": "lga",
-    "source_codes": [{ "edition": "LGA 2016", "code": "11100" }] },
-  { "area_id": "lga-000902", "name": "Rockdale", "boundary_type": "lga",
-    "source_codes": [{ "edition": "LGA 2016", "code": "16650" }] }
+  {
+    "area_id": "lga-000004",
+    "name": "Botany Bay",
+    "boundary_type": "lga",
+    "source_codes": [{ "edition": "LGA 2016", "code": "11100" }]
+  },
+  {
+    "area_id": "lga-000033",
+    "name": "Rockdale",
+    "boundary_type": "lga",
+    "source_codes": [{ "edition": "LGA 2016", "code": "16650" }]
+  }
 ]
 ```
 
 The later Area gets **no 2018 value** of its own, and the predecessors' values are never
 summed or averaged into it. To see the earlier history, request each predecessor's own trend
-by its `area_id`. Examples of merges: Rockdale and Botany Bay into Bayside (NSW); Mallala into
-Adelaide Plains. (IDs above are illustrative.)
+by its `area_id`. Examples of merges: Rockdale (`lga-000033`) and Botany Bay (`lga-000004`) into Bayside (NSW)
+(`lga-000172`), shown above; Mallala (`lga-000110`) into Adelaide Plains (`lga-000174`).
 
 ## Auth
 

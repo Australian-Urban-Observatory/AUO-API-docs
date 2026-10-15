@@ -23,24 +23,23 @@ Name the Area one way only — see
 
 ## Response — 200
 
+`GET /v1/values?area=lga-000084&indicator=walkability_index&year=2021`
+
 ```json
 {
   "area": {
-    "area_id": "lga-000123",
+    "area_id": "lga-000084",
     "name": "Yarra",
     "boundary_type": "lga",
-    "source_codes": [
-      { "edition": "LGA 2021", "code": "27350" },
-      { "edition": "LGA 2016", "code": "27350" }
-    ]
+    "source_codes": [{ "edition": "LGA 2021", "code": "27350" }, { "edition": "LGA 2016", "code": "27350" }]
   },
   "resolved_from": null,
-  "indicator": "walkability",
+  "indicator": "walkability_index",
   "year": 2021,
   "variant": "r",
-  "value": 4.2,
+  "value": 7.3,
   "polarity": "ASC",
-  "units": "index score"
+  "units": ""
 }
 ```
 

@@ -12,12 +12,12 @@ POST /v1/correlations
 
 ```json
 {
-  "indicator_a": "dwelling_density",
-  "indicator_b": "social_infrastructure_access",
+  "indicator_a": "walkability_dwelling_density",
+  "indicator_b": "social_infrastructure_index",
   "year": 2021,
-  "boundary_type": "ssc",
+  "boundary_type": "lga",
   "scope": "study_region",
-  "scope_code": "study_region-000007"
+  "scope_code": "study_region-000014"
 }
 ```
 
@@ -33,15 +33,15 @@ No `variant` field — always computed on raw (`r`) values, like [Distribution](
 
 ```json
 {
-  "id": 8,
-  "url": "/v1/correlations/8",
+  "id": 145,
+  "url": "/v1/correlations/145",
   "result": {
-    "indicator_a": "dwelling_density",
-    "indicator_b": "social_infrastructure_access",
+    "indicator_a": "walkability_dwelling_density",
+    "indicator_b": "social_infrastructure_index",
     "year": 2021,
     "scope": "study_region",
-    "count": 214,
-    "coefficient": -0.42
+    "count": 35,
+    "coefficient": 0.8227667764541186
   }
 }
 ```

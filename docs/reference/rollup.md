@@ -51,7 +51,7 @@ your request:
   "error": {
     "code": "INSUFFICIENT_DATA",
     "message": "The study area is too small to return a value.",
-    "details": { "region_id": 91, "indicator": "walkability", "year": 2021, "variant": "r" }
+    "details": { "region_id": 903, "indicator": "urban_liveability_index", "year": 2021, "variant": "r" }
   }
 }
 ```
@@ -85,15 +85,15 @@ a member that is an LGA contributes the LGA's own value, not its suburbs'.
 
 ### Response — 200
 
-```json
-{
-  "area_group_id": 3,
-  "indicator": "walkability",
-  "year": 2021,
-  "variant": "r",
-  "value": 5.8
-}
-```
+The body has these fields:
+
+| Field | Type | Notes |
+|---|---|---|
+| `area_group_id` | integer | The group you asked for |
+| `indicator` | string | As requested |
+| `year` | integer | As requested |
+| `variant` | string | As requested |
+| `value` | number | The unweighted mean of the contributing members' values, rounded to the indicator's precision |
 
 ### Errors
 
@@ -118,11 +118,25 @@ POST /v1/regions
 ```
 
 ```json
-{ "polygon": { "type": "Polygon", "coordinates": [[...]] }, "label": "Proposed precinct A" }
+{
+  "polygon": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [144.975, -37.81],
+        [144.99, -37.81],
+        [144.99, -37.795],
+        [144.975, -37.795],
+        [144.975, -37.81]
+      ]
+    ]
+  },
+  "label": "Fitzroy test box"
+}
 ```
 
 ```json
-{ "id": 91, "url": "/v1/regions/91" }
+{ "id": 901, "url": "/v1/regions/901" }
 ```
 
 `label` is optional. Creating a region doesn't need a key and doesn't read any values — the
@@ -142,14 +156,15 @@ GET /v1/regions/{region_id}/values?indicator={key}&year={year}&variant=r
 Only `r` is ever supported here — see
 [Variants → custom regions only ever support `r`](../concepts/variants.md#custom-regions-only-ever-support-r).
 Computes the person-weighted mean of the region's meshblock-level values, live, on every call.
+For example `GET /v1/regions/901/values?indicator=urban_liveability_index&year=2021&variant=r`:
 
 ```json
 {
-  "region_id": 91,
-  "indicator": "walkability",
+  "region_id": 901,
+  "indicator": "urban_liveability_index",
   "year": 2021,
   "variant": "r",
-  "value": 6.1
+  "value": 107.1
 }
 ```
 
