@@ -47,6 +47,7 @@ nav:
       - Lookup a value: reference/lookup.md
       - Area profile: reference/profile.md
       - Rank areas: reference/rank.md
+      - Bulk values: reference/bulk-values.md
       - Compare areas: reference/compare-areas.md
       - Compare indicators: reference/compare-indicators.md
       - Trend: reference/trend.md

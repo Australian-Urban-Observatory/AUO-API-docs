@@ -44,6 +44,18 @@ that LGA in 2024, which is not always every suburb that touches it — see
 [Rank → scopes](reference/rank.md#scopes). A scoped ranking for 2018 is empty; use
 `scope=national`.
 
+## "Give me every suburb's value, for a map"
+
+```
+GET /v1/values/bulk?indicator=urban_liveability_index&year=2018&boundary_type=ssc
+    &scope=national
+```
+
+One call returns the value of every suburb in scope, with all four variants unless you narrow
+them with `variants=`, and no 1000-row cap. Each area carries `source_codes` for joining to
+your map layer. For 2018 use `scope=national`, as scoped requests for 2018 are empty. See
+[Bulk values](reference/bulk-values.md).
+
 ## "Which component indicator is dragging this suburb's score down?"
 
 ```
