@@ -127,9 +127,16 @@ So `total: 0` means there's genuinely no data, not that your access was too narr
 ## Errors
 
 1. `INVALID_LIMIT` (422) — checked before anything else, since it needs no database access
-2. `SCOPE_NOT_FOUND` (404) — `scope_code` isn't the AUO Area ID of an Area of the kind `scope`
+   (a `direction` other than `best`/`worst` is likewise a
+   [`REQUEST_INVALID`](../concepts/errors.md#malformed-requests) 422, not a silent default)
+2. `UNKNOWN_BOUNDARY_TYPE` (400) — `boundary_type` isn't a boundary type; `details.valid_boundary_types`
+   lists them
+3. `SCOPE_NOT_FOUND` (404) — `scope_code` isn't the AUO Area ID of an Area of the kind `scope`
    names (or `scope_code` is missing for a `state`/`study_region`/`lga` scope)
-3. `INDICATOR_NOT_FOUND` (404)
-4. `VARIANT_NOT_SUPPORTED` (422)
-5. `401 AUTHENTICATION_REQUIRED` / `403 OUT_OF_SCOPE` — indicator not visible to you anywhere,
+4. `INDICATOR_NOT_FOUND` (404)
+5. `VARIANT_NOT_SUPPORTED` (422)
+6. `401 AUTHENTICATION_REQUIRED` / `403 OUT_OF_SCOPE` — indicator not visible to you anywhere,
    or filtering left nothing (see Auth above)
+7. `INSUFFICIENT_DATA` (422) — `boundary_type` is valid, but no indicator has values stored at it at
+   all (`study_region` today; `details.boundary_type_has_values` is `false`). A valid boundary type
+   that merely has no values for *your* indicator, year and scope is still `total: 0`, a `200`.

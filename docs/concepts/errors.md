@@ -60,7 +60,7 @@ the single source of truth — individual endpoint pages only call out which of 
 | `INDICATOR_NOT_FOUND` | 404 | Named indicator key doesn't exist |
 | `VARIANT_NOT_SUPPORTED` | 422 | Variant isn't one of `r`, `p`, `pl`, `pc` |
 | `SCOPE_NOT_FOUND` | 404 | Named ranking/distribution/correlation scope doesn't exist: `scope_code` isn't the AUO Area ID of an Area of the kind `scope` names (an LGA's ID for `lga`, and so on) |
-| `INSUFFICIENT_DATA` | 422 | Not enough data to compute the result: a bulk-values boundary type with nothing stored at all, fewer than 2 areas for a distribution/correlation, no contributing member for a roll-up, or a roll-up over too few meshblocks (see [Rollup → minimum size](../reference/rollup.md#minimum-size)) |
+| `INSUFFICIENT_DATA` | 422 | Not enough data to compute the result: a valid boundary type with nothing stored at it for any indicator (`details.boundary_type_has_values` is `false`; rankings, distribution, correlations, bulk values), fewer than 2 areas for a distribution/correlation, no contributing member for a roll-up, or a roll-up over too few meshblocks (see [Rollup → minimum size](../reference/rollup.md#minimum-size)) |
 | `DUPLICATE_INDICATOR` | 422 | Correlation requested between an indicator and itself |
 | `CUSTOM_REGION_NOT_SUPPORTED` | 422 | Indicator's `aggregation_method` is `unsupported` — no meshblock source to roll up |
 | `CUSTOM_REGION_EMPTY` | 422 | Submitted polygon fully contains zero meshblocks |
@@ -68,6 +68,7 @@ the single source of truth — individual endpoint pages only call out which of 
 | `CUSTOM_REGION_VARIANT_NOT_SUPPORTED` | 422 | Requested a variant other than `r` against a custom region |
 | `AREA_GROUP_NOT_FOUND` | 404 | Named area_group id doesn't exist |
 | `INVALID_GEOMETRY` | 400 | Bad GeoJSON, out-of-range lat/lon, or self-intersecting polygon (spatial endpoints) |
+| `UNKNOWN_BOUNDARY_TYPE` | 400 | `boundary_type` isn't a boundary type (rankings, distribution, correlations, bulk values); `details.valid_boundary_types` lists the valid ones |
 | `UNKNOWN_BOUNDARY_TYPE_OR_YEAR` | 400 | That boundary type/year combination doesn't exist in the system |
 | `NO_CONTAINING_AREA` | 404 | No area of the requested boundary type/year contains the given point |
 | `DOMAIN_NOT_FOUND` | 404 | Named domain filter doesn't exist |
@@ -84,6 +85,19 @@ the single source of truth — individual endpoint pages only call out which of 
 | `INSUFFICIENT_INDICATORS` | 422 | Fewer than 2 `indicator_keys` in an indicator comparison |
 | `UNSUPPORTED_VERSION` | 404 | Version prefix never released |
 | `VERSION_WITHDRAWN` | 410 | Version prefix withdrawn |
+
+## Unknown routes and methods
+
+Requests that don't reach an endpoint at all get the same envelope, so a client that unwraps
+`error` never mistakes them for a result:
+
+| Code | Status | Meaning |
+|---|---|---|
+| `NOT_FOUND` | 404 | No such endpoint; `details.path` is the path you sent |
+| `METHOD_NOT_ALLOWED` | 405 | The endpoint exists but not for this HTTP method; `details.path` and `details.method`, and an `Allow` header lists the methods it accepts |
+| `INTERNAL_ERROR` | 500 | Something went wrong on the AUO side; retry later and contact the AUO team if it persists |
+
+Any other HTTP-level failure uses `HTTP_<status>` (for example `HTTP_400`).
 
 ## Access errors
 

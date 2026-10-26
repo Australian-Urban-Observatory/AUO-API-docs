@@ -51,11 +51,15 @@ your effective scope.
 
 ### Errors (create)
 
-1. `SCOPE_NOT_FOUND` (404) — `scope_code` isn't the AUO Area ID of an Area of the kind `scope` names
-2. `DUPLICATE_INDICATOR` (422) — `indicator_a` and `indicator_b` are the same key
-3. `INDICATOR_NOT_FOUND` (404) — names every key that failed to resolve
-4. `401`/`403` — indicator access, as above
-5. `INSUFFICIENT_DATA` (422) — fewer than 2 areas you can see have both values
+1. `UNKNOWN_BOUNDARY_TYPE` (400) — `boundary_type` isn't a boundary type; `details.valid_boundary_types`
+   lists them
+2. `SCOPE_NOT_FOUND` (404) — `scope_code` isn't the AUO Area ID of an Area of the kind `scope` names
+3. `DUPLICATE_INDICATOR` (422) — `indicator_a` and `indicator_b` are the same key
+4. `INDICATOR_NOT_FOUND` (404) — names every key that failed to resolve
+5. `401`/`403` — indicator access, as above
+6. `INSUFFICIENT_DATA` (422) — fewer than 2 areas you can see have both values, or `boundary_type` is
+   valid but nothing is stored at it for any indicator (`study_region` today;
+   `details.boundary_type_has_values` is `false`)
 
 Scope is applied to you at creation, unlike naming individual codes in a comparison:
 

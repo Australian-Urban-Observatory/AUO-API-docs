@@ -144,8 +144,10 @@ access check happens when you ask for values. If the polygon resolves to zero me
 nothing is created. A region with fewer meshblocks than the [minimum](#minimum-size) *is*
 created, but asking it for values is refused.
 
-**Errors:** `CUSTOM_REGION_INVALID_GEOMETRY` (400) — malformed, self-intersecting, or over
-5,000 vertices; `CUSTOM_REGION_EMPTY` (422) — valid polygon, zero meshblocks fully contained.
+Each position is `[longitude, latitude]`, longitude first, within ±180 and ±90.
+
+**Errors:** `CUSTOM_REGION_INVALID_GEOMETRY` (400) — malformed, self-intersecting, over
+5,000 vertices, or a position that isn't a pair of numbers or lies outside those ranges; `CUSTOM_REGION_EMPTY` (422) — valid polygon, zero meshblocks fully contained.
 
 ### Get a region's value for an indicator
 

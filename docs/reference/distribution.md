@@ -77,15 +77,19 @@ study-region or LGA distribution (use `national`).
 
 0. `422` — `area` together with `community_code`/`edition`, or `edition` without
    `community_code` ([malformed request](../concepts/errors.md#malformed-requests))
-1. `SCOPE_NOT_FOUND` (404)
-2. `AREA_NOT_FOUND` (404) — only checked if `area` or `community_code` was supplied
-3. `INDICATOR_NOT_FOUND` (404)
-4. `401 AUTHENTICATION_REQUIRED` / `403 OUT_OF_SCOPE` — you can't see the indicator anywhere
-5. `401`/`403` — areas have recorded values but you can see none of them
-6. `INSUFFICIENT_DATA` (422) — fewer than 2 areas in scope have a recorded value
-7. `401`/`403` — you supplied an own Area and can't see this indicator at it
+1. `UNKNOWN_BOUNDARY_TYPE` (400) — `boundary_type` isn't a boundary type; `details.valid_boundary_types`
+   lists them
+2. `SCOPE_NOT_FOUND` (404)
+3. `AREA_NOT_FOUND` (404) — only checked if `area` or `community_code` was supplied
+4. `INDICATOR_NOT_FOUND` (404)
+5. `401 AUTHENTICATION_REQUIRED` / `403 OUT_OF_SCOPE` — you can't see the indicator anywhere
+6. `401`/`403` — areas have recorded values but you can see none of them
+7. `INSUFFICIENT_DATA` (422) — fewer than 2 areas in scope have a recorded value, or `boundary_type`
+   is valid but nothing is stored at it for any indicator (`study_region` today;
+   `details.boundary_type_has_values` is `false`)
+8. `401`/`403` — you supplied an own Area and can't see this indicator at it
 
 Areas you can't see are silently left out of the distribution, as long as at least one
-remains. Only when *none* remain (step 5), or the reference area itself is hidden (step 7),
+remains. Only when *none* remain (step 6), or the reference area itself is hidden (step 8),
 is the request refused. `INSUFFICIENT_DATA` counts only the areas you can see, so it can
 also occur when your access leaves just one area with a value.

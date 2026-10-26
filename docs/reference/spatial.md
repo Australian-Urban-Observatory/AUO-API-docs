@@ -156,5 +156,5 @@ first two of the 30 SA1s the call returns.
 ```
 
 `areas` is ordered by AUO Area ID. SA1s have no name, so `name` is `null`. Not a persisted
-resource — no corresponding `GET /{id}`. **Errors:** `INVALID_GEOMETRY` (400) — checked first,
-no database access needed; `UNKNOWN_BOUNDARY_TYPE_OR_YEAR` (400).
+resource — no corresponding `GET /{id}`. **Errors:** `INVALID_GEOMETRY` (400) — a position that isn't a `[longitude, latitude]` pair of
+numbers, or lies outside ±180 / ±90; checked first, no database access needed; `UNKNOWN_BOUNDARY_TYPE_OR_YEAR` (400).

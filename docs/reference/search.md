@@ -52,6 +52,11 @@ GET /v1/search/indicators?q={free text}
 }
 ```
 
+- Matching is by whole word, not substring: `rent` finds rental indicators but never `parent`.
+  Plurals and endings are folded (`parks` matches `park`, `renting` matches `rent`), common
+  synonyms are expanded (`public open space` ↔ `park`, `walkable` ↔ `walk`), and filler words
+  such as "the", "to" and "show" are ignored, so `access to parks` is scored on "access" and
+  "parks". A query made only of filler words is still scored as written.
 - `candidates` is capped at 20, ordered by descending `score`, ties broken by ascending key.
 - `score` is relative to the best match for *this* query: the top candidate is always `1.0`.
   It ranks the candidates against each other; it isn't a confidence level you can compare

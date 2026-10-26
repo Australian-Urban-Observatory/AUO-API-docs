@@ -90,6 +90,16 @@ access your organisation has been granted (its **effective scope**). An organisa
 active key at a time: a key is shown in plaintext exactly once, when it's issued, and if you
 lose it the AUO team can replace it (which revokes the old one).
 
+## Calling from a browser
+
+A web app running on another origin can call the API directly from the browser, provided the AUO
+team has allowed that origin — contact the AUO team with the exact origin (scheme, host and port,
+for example `https://panel.example.org`). Allowed origins may use `GET` and `POST` with the
+`Authorization` and `Content-Type` headers; the bearer token travels in the `Authorization`
+header, never in a cookie. Error responses carry the same headers, so your app can read the
+[error envelope](concepts/errors.md). A request from an origin that hasn't been allowed gets no
+CORS headers, and the browser will block it.
+
 ## Making your first request
 
 ```bash
