@@ -1,7 +1,7 @@
 # City average
 
 `city-average` — an indicator's average over an area's **city** (its study region, e.g.
-Melbourne), the figure the LGA scorecards compare each council with.
+Melbourne), for showing an area's value beside its city's.
 
 ```
 GET /v1/values/city
@@ -32,12 +32,17 @@ GET /v1/values/city
 
 - The city is the study region the area is **assigned to** in that year (a study region is its
   own city). `study_region` is `null` if the area has none that year, and then `value` is `null`
-  too. 2018 areas have no assigned parents, so every 2018 city average is `null`.
+  too.
+- **Every 2018 city average is `null`.** 2018 areas have no assigned parents, so no 2018
+  meshblock belongs to a city. A 2018 request still succeeds (200) with `"value": null`, and with
+  `"study_region": null` unless the area you name is itself a study region.
 - `value` is the population-weighted mean of the raw value (`r`) over the city's meshblocks,
   rounded to 3 decimal places. Only the raw variant has a city average: an average of
   percentiles is not a percentile. `null` means no data for that city and year.
 - Only indicators with `"custom_region_supported": true` in the
   [catalogue](metadata.md) have a city average (they are the ones with meshblock-level data).
+- Results may be cached for up to 10 minutes, so a city average can lag a data update by that
+  long. Access is still checked on every request.
 
 ## Auth
 
@@ -46,8 +51,7 @@ indicator at that study region: anyone for a public indicator (study regions are
 baseline), and only with access that covers that study region for a partner-restricted one.
 Access to the indicator at suburbs or SA1s inside the city is not enough. The `area` you name
 must also be one you can see: an LGA or study region for anyone, a suburb or SA1 only with access
-there, never a meshblock. Meshblock values
-themselves are never returned. See [Scope, grants & auth](../concepts/scope-and-auth.md).
+there, never a meshblock. Meshblock values themselves are never returned. See [Scope, grants & auth](../concepts/scope-and-auth.md).
 
 ## Errors
 
