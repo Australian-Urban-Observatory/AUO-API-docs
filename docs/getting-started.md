@@ -100,6 +100,15 @@ header, never in a cookie. Error responses carry the same headers, so your app c
 [error envelope](concepts/errors.md). A request from an origin that hasn't been allowed gets no
 CORS headers, and the browser will block it.
 
+A browser app that greys out what a person can't see can ask [My access](reference/my-access.md)
+once after sign-in instead of waiting for `401`/`403` answers.
+
+## Compression
+
+Responses of 1 KB or more are gzip-compressed when the request carries `Accept-Encoding: gzip`,
+which browsers and most HTTP clients send by default (and decompress for you). This applies to JSON
+and CSV alike; without the header you get the uncompressed body.
+
 ## Making your first request
 
 ```bash

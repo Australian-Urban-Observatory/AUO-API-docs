@@ -132,8 +132,9 @@ geometrically sit inside it. A `scope_code` that is not the AUO Area ID of an Ar
 
 ## Response size
 
-There is no row cap, so the response is as large as the scope. Responses are not compressed
-by the API. For `urban_liveability_index`, suburbs for all of Australia in 2018 (3,094 areas, all
+There is no row cap, so the response is as large as the scope. Send `Accept-Encoding: gzip`
+(browsers and most HTTP clients do this by default) and the response is gzip-compressed, which
+shrinks it by roughly 90%: SA1s for all of Australia compress from about 9.6 MB to 0.7 MB. For `urban_liveability_index`, suburbs for all of Australia in 2018 (3,094 areas, all
 four variants) came to about 0.7 MB, while SA1s for all of Australia (about 40,000 areas) came
 to about 9 MB, whichever of the 2018, 2021 or 2024 releases and whether or not `variants`
 was narrowed to one. If you don't need all four variants, pass `variants=`; if you don't need the
