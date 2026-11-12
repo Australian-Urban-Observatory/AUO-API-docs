@@ -40,6 +40,7 @@ itself.
 | Profile | Every indicator for one area | `GET /v1/areas/profile` |
 | Rank | Top/bottom N areas on one indicator | `GET /v1/rankings` |
 | Bulk values | Every area's value for one indicator, in one response | `GET /v1/values/bulk` |
+| City average | An indicator's average over an area's city (study region) | `GET /v1/values/city` |
 | Compare areas | Same indicator across several areas | `POST /v1/comparisons/areas` |
 | Compare indicators | Several indicators for one area | `POST /v1/comparisons/indicators` |
 | Trend | One indicator for one area across the releases it exists in | `GET /v1/areas/trend` |
@@ -50,6 +51,7 @@ itself.
 | Search indicators | Find an indicator from a plain-language description | `GET /v1/search/indicators` |
 | Search areas | Find an area's AUO Area ID from a place name | `GET /v1/search/areas` |
 | Metadata | Definition, units, methodology | `GET /v1/indicators`, `GET /v1/indicators/{key}` |
+| My access | Which boundary types and indicators you can see | `GET /v1/me/access` |
 
 Every endpoint is under a version prefix (`/v1` today) — see
 [API Versioning](getting-started.md#versioning).

@@ -48,6 +48,7 @@ nav:
       - Area profile: reference/profile.md
       - Rank areas: reference/rank.md
       - Bulk values: reference/bulk-values.md
+      - City average: reference/city-average.md
       - Compare areas: reference/compare-areas.md
       - Compare indicators: reference/compare-indicators.md
       - Trend: reference/trend.md
@@ -57,4 +58,5 @@ nav:
       - Spatial: reference/spatial.md
       - Search: reference/search.md
       - Indicator metadata: reference/metadata.md
+      - My access: reference/my-access.md
   - Decisions (ADRs): adr/0001-separate-public-docs-repo.md
